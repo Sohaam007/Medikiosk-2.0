@@ -10,9 +10,11 @@ The current demo lets a patient or community health worker:
 
 1. open the Vite kiosk UI and choose a language;
 2. run an explainable CardioVision heart-risk screen before clinical intake;
-3. continue through voice/touch intake, document capture, FHIR summary and
+3. receive deterministic, non-binding cardiology candidate IDs for clinician
+   review without selecting a doctor or purchasing a package;
+4. continue through voice/touch intake, document capture, FHIR summary and
    the existing clinician queue; and
-4. use the offline preview when the backend is unavailable.
+5. use the offline preview when the backend is unavailable.
 
 The cardiovascular result is screening support only. It is not a diagnosis and
 requires clinician review.
@@ -72,6 +74,11 @@ curl -X POST http://localhost:8000/api/screening/cardiovascular \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $MEDIKIOSK_JWT" \
   -d '{"features":{"Age":58,"HTN":1,"Typical Chest Pain":0}}'
+
+curl -X POST http://localhost:8000/api/screening/cardiovascular/referral \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $MEDIKIOSK_JWT" \
+  -d '{"features":{"Age":72,"HTN":1,"Typical Chest Pain":1},"preferred_language":"hi-IN"}'
 ```
 
 ## Checks

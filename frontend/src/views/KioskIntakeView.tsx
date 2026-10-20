@@ -2396,7 +2396,7 @@ export function KioskIntakeView() {
             </div>
 
             {/* Wave 23: 2D Anatomical SVG Body-Map Pain Region Selector */}
-            <CardioVisionPanel patientAge={patientAge} />
+            <CardioVisionPanel patientAge={patientAge} sessionId={sessionId} />
             <div className="lg:col-span-12 mt-4">
               <BodyMapSelector
                 selectedRegions={selectedBodyRegions}

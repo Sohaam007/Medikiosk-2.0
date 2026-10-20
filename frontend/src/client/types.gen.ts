@@ -351,6 +351,20 @@ export type BodyUploadDocumentApiDocumentsUploadPost = {
 };
 
 /**
+ * CardiovascularReferralResponse
+ *
+ * Screening output plus non-binding referral candidates.
+ */
+export type CardiovascularReferralResponse = {
+    screening: CardiovascularScreeningResult;
+    recommendation: ReferralRecommendation;
+    /**
+     * Session Id
+     */
+    session_id?: string | null;
+};
+
+/**
  * CardiovascularScreeningRequest
  *
  * Feature payload accepted from the kiosk or a clinician console.
@@ -366,6 +380,10 @@ export type CardiovascularScreeningRequest = {
      * Session Id
      */
     session_id?: string | null;
+    /**
+     * Preferred Language
+     */
+    preferred_language?: string | null;
 };
 
 /**
@@ -1414,6 +1432,46 @@ export type RecordVitalsResponse = {
      * Message
      */
     message: string;
+};
+
+/**
+ * ReferralRecommendation
+ *
+ * Deterministic candidate IDs; this is not an appointment or diagnosis.
+ */
+export type ReferralRecommendation = {
+    /**
+     * Department
+     */
+    department?: string | null;
+    /**
+     * Doctor Ids
+     */
+    doctor_ids?: Array<string>;
+    /**
+     * Package Ids
+     */
+    package_ids?: Array<string>;
+    /**
+     * Matched Signals
+     */
+    matched_signals?: Array<string>;
+    /**
+     * Reason Code
+     */
+    reason_code: string;
+    /**
+     * Priority
+     */
+    priority: string;
+    /**
+     * Requires Clinician Review
+     */
+    requires_clinician_review?: boolean;
+    /**
+     * Screening Disclaimer
+     */
+    screening_disclaimer?: string;
 };
 
 /**
@@ -3324,3 +3382,35 @@ export type CardiovascularScreeningApiScreeningCardiovascularPostResponses = {
 };
 
 export type CardiovascularScreeningApiScreeningCardiovascularPostResponse = CardiovascularScreeningApiScreeningCardiovascularPostResponses[keyof CardiovascularScreeningApiScreeningCardiovascularPostResponses];
+
+export type CardiovascularReferralApiScreeningCardiovascularReferralPostData = {
+    body: CardiovascularScreeningRequest;
+    path?: never;
+    query?: {
+        /**
+         * Token
+         *
+         * JWT token for SSE/WebSocket clients
+         */
+        token?: string | null;
+    };
+    url: '/api/screening/cardiovascular/referral';
+};
+
+export type CardiovascularReferralApiScreeningCardiovascularReferralPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CardiovascularReferralApiScreeningCardiovascularReferralPostError = CardiovascularReferralApiScreeningCardiovascularReferralPostErrors[keyof CardiovascularReferralApiScreeningCardiovascularReferralPostErrors];
+
+export type CardiovascularReferralApiScreeningCardiovascularReferralPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: CardiovascularReferralResponse;
+};
+
+export type CardiovascularReferralApiScreeningCardiovascularReferralPostResponse = CardiovascularReferralApiScreeningCardiovascularReferralPostResponses[keyof CardiovascularReferralApiScreeningCardiovascularReferralPostResponses];

@@ -8,8 +8,19 @@ interface ScreeningResult {
   meta: { mode?: string; disclaimer?: string };
 }
 
+interface ReferralRecommendation {
+  doctor_ids: string[];
+  package_ids: string[];
+  matched_signals: string[];
+  reason_code: string;
+  priority: string;
+  requires_clinician_review: boolean;
+  screening_disclaimer: string;
+}
+
 interface CardioVisionPanelProps {
   patientAge: string;
+  sessionId?: string;
 }
 
 function probability(value: number) {
@@ -35,11 +46,12 @@ function offlinePreview(age: number, hypertension: boolean, chestPain: boolean):
   };
 }
 
-export function CardioVisionPanel({ patientAge }: CardioVisionPanelProps) {
+export function CardioVisionPanel({ patientAge, sessionId }: CardioVisionPanelProps) {
   const [age, setAge] = useState(patientAge || '42');
   const [hypertension, setHypertension] = useState(false);
   const [chestPain, setChestPain] = useState(false);
   const [result, setResult] = useState<ScreeningResult | null>(null);
+  const [referral, setReferral] = useState<ReferralRecommendation | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'offline'>('idle');
 
   async function runScreening() {
@@ -47,6 +59,11 @@ export function CardioVisionPanel({ patientAge }: CardioVisionPanelProps) {
     setStatus('loading');
     try {
       const token = import.meta.env.VITE_API_TOKEN as string | undefined;
+      const features = {
+        Age: numericAge,
+        HTN: Number(hypertension),
+        'Typical Chest Pain': Number(chestPain),
+      };
       const response = await fetch('/api/screening/cardiovascular', {
         method: 'POST',
         headers: {
@@ -54,18 +71,34 @@ export function CardioVisionPanel({ patientAge }: CardioVisionPanelProps) {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          features: {
-            Age: numericAge,
-            HTN: Number(hypertension),
-            'Typical Chest Pain': Number(chestPain),
-          },
+          features,
+          session_id: sessionId || undefined,
         }),
       });
       if (!response.ok) throw new Error('screening service unavailable');
       setResult((await response.json()) as ScreeningResult);
       setStatus('ready');
+      try {
+        const referralResponse = await fetch('/api/screening/cardiovascular/referral', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ features, session_id: sessionId || undefined }),
+        });
+        if (referralResponse.ok) {
+          const referralBody = (await referralResponse.json()) as {
+            recommendation: ReferralRecommendation;
+          };
+          setReferral(referralBody.recommendation);
+        }
+      } catch {
+        setReferral(null);
+      }
     } catch {
       setResult(offlinePreview(numericAge, hypertension, chestPain));
+      setReferral(null);
       setStatus('offline');
     }
   }
@@ -116,6 +149,18 @@ export function CardioVisionPanel({ patientAge }: CardioVisionPanelProps) {
       )}
       {status === 'offline' && <p className="mt-3 text-xs font-bold text-indigo-700">Offline preview shown. Connect the API and repeat the screen for the configured backend result.</p>}
       {result && <p className="mt-3 text-xs text-slate-600">{result.meta.disclaimer}</p>}
+      {referral && (
+        <div className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950">
+          <p className="font-black">Next step: clinician-reviewed cardiology referral</p>
+          <p className="mt-1">
+            {referral.doctor_ids.length} available specialist candidate(s) and{' '}
+            {referral.package_ids.length} cardiac package candidate(s) matched.
+          </p>
+          <p className="mt-1 text-xs font-semibold">
+            This is a recommendation only. No doctor was selected, appointment was booked, or package was purchased.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

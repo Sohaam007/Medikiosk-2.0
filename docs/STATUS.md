@@ -5,12 +5,15 @@
 The SEVA working-model copy adds a bounded CardioVision screening slice to the
 canonical MediKiosk application. Current evidence from this workspace:
 
-- `285 passed` with `uv run --extra dev python -m pytest tests/ -q`.
+- `290 passed` with `uv run --extra dev python -m pytest tests/ -q`.
 - `ruff check src/ tests/` passes.
 - `mypy src/ --strict` passes.
 - `frontend npm run build` passes.
 - CardioVision `mock` mode is deterministic and offline; `real` mode was smoke
   tested against the copied local XGBoost assets.
+- The referral slice adds `POST /api/screening/cardiovascular/referral`, a pure
+  candidate matcher, local availability filtering, and explicit clinician-review
+  boundaries. It does not select doctors, purchase packages, or allocate emergency resources.
 
 The wider SEVA vision remains staged. Live clinical validation, production ABDM,
 WhatsApp, ambulance, payment, hospital-capacity and medical-tourism partners
