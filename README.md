@@ -49,6 +49,35 @@ To exercise the copied local XGBoost model assets explicitly, use
 
 ## Run
 
+### One-click Windows startup
+
+Double-click **`start_dev.bat`** in this folder. Keep `start_dev.ps1` next to it.
+It starts the API and Vite in separate console windows, waits for both to respond,
+then opens **http://127.0.0.1:5173**. Repeated launches reuse responding services
+on ports 8000 and 5173; close other projects using these ports first.
+
+The first launch installs locked dependencies if the local environment is absent
+(internet required). It needs Python/uv and Node/npm installed, never overwrites
+your `.env`, and never installs global packages. Existing environments are reused;
+after dependency changes run `uv sync --frozen --extra dev` and `npm ci` manually.
+For local demo authentication only, the example configuration contains a
+development-only JWT secret. The launcher also supplies that value process-scoped
+when `API_KEY` is blank; it never writes a secret to disk. Replace it before any
+non-local deployment.
+To stop the application, press **Ctrl+C in both server windows**.
+
+For a readiness check without opening a browser:
+
+```powershell
+.\start_dev.bat -NoBrowser
+```
+
+This launches the local prototype, not a production deployment. The heart panel
+still needs a configured demo JWT for backend referral requests; without one it
+shows its labelled offline preview. Do not enter real patient data.
+
+### Manual startup
+
 Backend:
 
 ```bash
