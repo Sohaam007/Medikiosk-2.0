@@ -1,0 +1,5034 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MediKiosk",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Check system health including database connectivity.\n\nPerforms a lightweight ``SELECT 1`` probe against the configured\ndatabase engine. Never raises \u2014 a DB failure is surfaced as\n``\"database\": \"error\"`` in the response body so load balancers can\nstill parse the JSON.\n\nArgs:\n    engine: Async SQLAlchemy engine (injected).\n\nReturns:\n    dict: Health payload with keys ``status``, ``version``,\n          ``database``.",
+        "operationId": "health_check_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/start": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Start Session",
+        "description": "Start a new multi-tenant patient intake session.\n\nCreates a ``SessionState`` record and writes an audit event.\nPHI is never included in the response \u2014 only the opaque ``session_id``\nis returned to the caller.\n\nArgs:\n    body: Session configuration supplied by the kiosk.\n    current_user: Authenticated principal (injected).\n    session_svc: Session lifecycle service (injected).\n    intake_svc: Intake processing service (injected).\n\nReturns:\n    StartSessionResponse: Created session metadata.\n\nRaises:\n    HTTPException 403: ConsentRequiredError / ConsentError.\n    HTTPException 422: Domain ValidationError.\n    HTTPException 500: Any other MediKioskError.",
+        "operationId": "start_session_api_intake_start_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/respond": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Respond",
+        "description": "Process a patient response and return the next question or triage alert.\n\nValidates session existence and liveness via SessionService. Full\nLLM-based question generation is deferred to Wave 6 (IntakeService).\nA placeholder next question is returned for now.\n\nSECURITY: ``body.response_text`` is PHI and MUST NOT be logged.\nOnly ``session_id`` is recorded in structured logs.\n\nArgs:\n    body: Patient response payload.\n    current_user: Authenticated principal (injected).\n    session_svc: Session lifecycle service (injected).\n    intake_svc: The actual IntakeService.\n\nReturns:\n    RespondResponse: Updated progress, any triage alerts, and next question.",
+        "operationId": "respond_api_intake_respond_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespondResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/session/purge": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Purge Session",
+        "description": "Hard-delete a session record (DPDP Right-to-Erasure).\n\nPermanently removes all session data from the store, evicts cached\nintake state, removes temporary OCR scan/audio files, and writes an\nimmutable audit event for compliance. This operation is irreversible.\n\nAccepted roles: ``Kiosk_Device``, ``Triage_Nurse``.\n\nArgs:\n    body: Purge request with session_id and reason.\n    current_user: Authenticated principal with purge permission (injected).\n    session_svc: Session lifecycle service (injected).\n    intake_svc: Intake service managing cached transcripts (injected).\n\nReturns:\n    PurgeResponse: Confirmation that the session was purged.\n\nRaises:\n    HTTPException 404: SessionNotFoundError.\n    HTTPException 500: Any other MediKioskError.",
+        "operationId": "purge_session_api_session_purge_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurgeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/verify-pmjay": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Verify Pmjay",
+        "description": "Verify PM-JAY eligibility and update session billing status.",
+        "operationId": "verify_pmjay_api_intake_verify_pmjay_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPMJAYRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PMJAYVerificationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/vitals": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Record Vitals Route",
+        "description": "Record patient physiological vital signs and calculate NEWS2 score.\n\nEvaluates Royal College of Physicians NEWS2 standard and clinical veto rules.\nLogs zero-PHI: records session_id, news2_score, and news2_risk_band only.",
+        "operationId": "record_vitals_route_api_intake_vitals_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordVitalsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordVitalsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/sync-batch": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Sync Batch Route",
+        "description": "Batch reconcile up to 50 offline sessions from IndexedDB store-and-forward.\n\nGuarantees idempotency on client_session_uuid: existing sessions are returned\nwithout row duplication. Reconciled sessions become visible in the live clinician queue.\nPreserves client offline tokens (OFF-K01-XXXX) and evaluates clinical symptoms.",
+        "operationId": "sync_batch_route_api_intake_sync_batch_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncBatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncBatchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/standing-orders": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Evaluate Standing Orders",
+        "description": "Evaluate clinical standing orders and pre-consultation lab/radiology routing.\n\nAppends AuditEventType.STANDING_ORDERS_ISSUED with zero-PHI metadata.\nPersists recommended_labs_json on the session entity.",
+        "operationId": "evaluate_standing_orders_api_intake_standing_orders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandingOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandingOrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/caregiver-pass": {
+      "post": {
+        "tags": [
+          "intake"
+        ],
+        "summary": "Issue Caregiver Pass",
+        "description": "Issue a companion caregiver pass for accompanying attendants/relatives.\n\nValidates E.164 phone formatting and logs only SHA-256 phone hash (Zero PHI).\nAppends AuditEventType.CAREGIVER_PASS_ISSUED.",
+        "operationId": "issue_caregiver_pass_api_intake_caregiver_pass_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaregiverPassRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaregiverPassResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/queue": {
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Get Queue",
+        "description": "Return the current triage queue for a department.",
+        "operationId": "get_queue_api_clinician_queue_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Department to query",
+              "default": "general",
+              "title": "Department Id"
+            },
+            "description": "Department to query"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/queue/live": {
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Queue Live Stream",
+        "description": "Stream real-time triage queue updates via Server-Sent Events.",
+        "operationId": "queue_live_stream_api_clinician_queue_live_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Department to stream",
+              "default": "general",
+              "title": "Department Id"
+            },
+            "description": "Department to stream"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/queue/page-patient": {
+      "post": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Page Patient",
+        "description": "Page a patient in the virtual waiting room.",
+        "operationId": "page_patient_api_clinician_queue_page_patient_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PagePatientRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagePatientResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/overview": {
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Get Overview",
+        "description": "Return dashboard KPI summary metrics and active red-flag alert details.",
+        "operationId": "get_overview_api_clinician_overview_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicianOverviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/session/{session_id}": {
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Get Session Detail",
+        "description": "Return full patient profile, status, token, wait time, chief complaint, triage alerts,\nand timeline events.",
+        "operationId": "get_session_detail_api_clinician_session__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicianSessionDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/verify-rx-safety": {
+      "post": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Verify Rx Safety",
+        "description": "Evaluate pharmacovigilance drug interactions, vitals contraindications, and allergies.\n\nProtected by clinician role. Zero-PHI telemetry logged: records only session_id,\nrisk severity, and alert counts without exposing drug names or patient details.",
+        "operationId": "verify_rx_safety_api_clinician_verify_rx_safety_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRxSafetyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyRxSafetyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/doctors": {
+      "get": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "List Doctors",
+        "description": "List available doctors.",
+        "operationId": "list_doctors_api_doctors_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by department",
+              "title": "Department"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by language code",
+              "title": "Language"
+            },
+            "description": "Filter by language code"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/select-doctor": {
+      "post": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Select Doctor",
+        "description": "Select a doctor for a session and persist selection.",
+        "operationId": "select_doctor_api_intake_select_doctor_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectDoctorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectDoctorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/packages": {
+      "get": {
+        "tags": [
+          "packages"
+        ],
+        "summary": "List Packages",
+        "description": "List available health packages.",
+        "operationId": "list_packages_api_packages_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by department",
+              "title": "Department"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category",
+              "title": "Category"
+            },
+            "description": "Filter by category"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/intake/select-package": {
+      "post": {
+        "tags": [
+          "packages"
+        ],
+        "summary": "Select Package",
+        "description": "Select packages for a session and persist to database.",
+        "operationId": "select_package_api_intake_select_package_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectPackageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectPackageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/token": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Generate Token",
+        "description": "Issue a signed HS256 JWT token.",
+        "operationId": "generate_token_api_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/upload": {
+      "post": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Upload Document",
+        "description": "Upload and process a document using OCR.",
+        "operationId": "upload_document_api_documents_upload_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_documents_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentScan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/session/{session_id}": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "List Session Documents",
+        "description": "Retrieve all document scans for a session.",
+        "operationId": "list_session_documents_api_documents_session__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentScan"
+                  },
+                  "title": "Response List Session Documents Api Documents Session  Session Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/speech/transcribe": {
+      "post": {
+        "tags": [
+          "speech"
+        ],
+        "summary": "Transcribe Audio",
+        "description": "Transcribe raw audio recording to text.\n\nAccepts raw audio blobs (webm, wav, ogg, etc.) via multipart form-data\nand returns transcribed text.",
+        "operationId": "transcribe_audio_api_speech_transcribe_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_transcribe_audio_api_speech_transcribe_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscribeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/abdm/generate-qr": {
+      "get": {
+        "tags": [
+          "abdm"
+        ],
+        "summary": "Generate Abdm Qr",
+        "description": "Generate dynamic ABDM Scan & Share QR code payload and counter token.\n\nReturns the formatted NHA ABDM JSON structure containing HIP ID, counter ID,\nand a time-limited transaction token.",
+        "operationId": "generate_abdm_qr_api_abdm_generate_qr_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Active intake session identifier",
+              "title": "Session Id"
+            },
+            "description": "Active intake session identifier"
+          },
+          {
+            "name": "kiosk_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Physical kiosk identifier",
+              "default": "KIOSK-01",
+              "title": "Kiosk Id"
+            },
+            "description": "Physical kiosk identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ABDMGenerateQRResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/abdm/events/{session_id}": {
+      "get": {
+        "tags": [
+          "abdm"
+        ],
+        "summary": "Abdm Events By Session",
+        "description": "Stream Server-Sent Events (SSE) for ABDM profile sharing linked to a session.",
+        "operationId": "abdm_events_by_session_api_abdm_events__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional counter token to also subscribe to",
+              "title": "Token"
+            },
+            "description": "Optional counter token to also subscribe to"
+          },
+          {
+            "name": "max_events",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional limit on events before stream close",
+              "title": "Max Events"
+            },
+            "description": "Optional limit on events before stream close"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/abdm/events": {
+      "get": {
+        "tags": [
+          "abdm"
+        ],
+        "summary": "Abdm Events Query",
+        "description": "Stream Server-Sent Events (SSE) using query parameters.",
+        "operationId": "abdm_events_query_api_abdm_events_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Active session ID to stream",
+              "title": "Session Id"
+            },
+            "description": "Active session ID to stream"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional counter token",
+              "title": "Token"
+            },
+            "description": "Optional counter token"
+          },
+          {
+            "name": "max_events",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional limit on events before stream close",
+              "title": "Max Events"
+            },
+            "description": "Optional limit on events before stream close"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/abdm/webhook": {
+      "post": {
+        "tags": [
+          "abdm"
+        ],
+        "summary": "Abdm Webhook",
+        "description": "Ingest demographic profile payload from ABDM Gateway / ABHA app.\n\nWhen triggered, updates the active session state (recording DPDP consent)\nand broadcasts an SSE event to the kiosk client.",
+        "operationId": "abdm_webhook_api_abdm_webhook_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ABDMWebhookPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ABDMWebhookResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/abdm/link-care-context": {
+      "post": {
+        "tags": [
+          "abdm"
+        ],
+        "summary": "Link Care Context",
+        "description": "Link ABDM M3 Care Context and generate verifiable e-Rx pharmacy token.\n\nAppends AuditEventType.CARE_CONTEXT_LINKED with zero-PHI payload.\nZero-PHI rule: logs only session_id and care_context_status=\"LINKED\".\nNever logs abha_id, soap_note, or medication strings.",
+        "operationId": "link_care_context_api_abdm_link_care_context_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCareContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkCareContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/summary/generate": {
+      "post": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Generate Summary",
+        "description": "Generate bilingual clinical summary and FHIR R4 Bundle for a session.",
+        "operationId": "generate_summary_api_summary_generate_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateSummaryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/summary/session/{session_id}": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Get Summary By Session",
+        "description": "Retrieve existing clinical summary for a session.",
+        "operationId": "get_summary_by_session_api_summary_session__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicalSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fhir/session/{session_id}": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Get Fhir Bundle By Session",
+        "description": "Retrieve FHIR R4 Bundle for a session.",
+        "operationId": "get_fhir_bundle_by_session_api_fhir_session__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FHIRBundleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/analytics/surge-radar": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Get Surge Radar",
+        "description": "Return real-time, k-anonymous epidemiological surge and command radar telemetry.\n\nZero-PHI: Never exposes individual patient identities, symptoms, or diagnoses.",
+        "operationId": "get_surge_radar_api_analytics_surge_radar_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeRadarResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources/allocate": {
+      "post": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Allocate Resource",
+        "description": "Allocate resuscitation bay, isolation room, or OPD chamber and dispatch porter.\n\nAppends AuditEventType.RESOURCE_ALLOCATED with zero PHI.\nPersists allocated_resource_id and porter_ticket_id on the session.",
+        "operationId": "allocate_resource_api_resources_allocate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocateResourceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocateResourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources/status": {
+      "get": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "Get Resources Status",
+        "description": "Return live occupancy grid of Resus Bays, Isolation Rooms, and active Porters.",
+        "operationId": "get_resources_status_api_resources_status_get",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "general",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/verify-chain/{session_id}": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Verify Chain",
+        "description": "Verify cryptographic SHA-256 Merkle hash chain continuity for a session audit ledger.\n\nReturns 200 with verification details if valid, or identifies exact broken_at_seq if tampered.\nRaises 404 if the session ID is not found.",
+        "operationId": "verify_chain_api_audit_verify_chain__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditChainVerificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/screening/cardiovascular": {
+      "post": {
+        "tags": [
+          "screening"
+        ],
+        "summary": "Cardiovascular Screening",
+        "description": "Screen cardiovascular risk and return a clinician-reviewable result.\n\nOnly the opaque session identifier is included in telemetry. The feature\ndictionary is never logged because it may contain sensitive clinical data.",
+        "operationId": "cardiovascular_screening_api_screening_cardiovascular_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardiovascularScreeningRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardiovascularScreeningResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ABDMGenerateQRResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Unique counter token assigned to this scan transaction"
+          },
+          "hip_id": {
+            "type": "string",
+            "title": "Hip Id",
+            "description": "Health Information Provider ID (Hospital NHA ID)",
+            "default": "IN0810000001"
+          },
+          "hip_name": {
+            "type": "string",
+            "title": "Hip Name",
+            "description": "Registered hospital facility name",
+            "default": "St. Ananya Hospital"
+          },
+          "counter_id": {
+            "type": "string",
+            "title": "Counter Id",
+            "description": "Physical kiosk counter / terminal code",
+            "default": "KIOSK-01"
+          },
+          "intent": {
+            "type": "string",
+            "title": "Intent",
+            "description": "ABDM Scan and Share intent",
+            "default": "ABHA_SCAN_AND_SHARE"
+          },
+          "qr_code_data": {
+            "type": "string",
+            "title": "Qr Code Data",
+            "description": "Serialized JSON payload string for QR code generation"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At",
+            "description": "ISO UTC timestamp when QR code expires"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Active session UUID if linked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "qr_code_data",
+          "expires_at"
+        ],
+        "title": "ABDMGenerateQRResponse",
+        "description": "Payload returned for display as an ABDM Scan & Share QR code."
+      },
+      "ABDMWebhookPayload": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Token",
+            "description": "Counter / transaction token from scanned QR code"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Optional active session UUID"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "Patient full name from ABHA profile"
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 125.0,
+            "minimum": 0.0,
+            "title": "Age",
+            "description": "Patient age in years",
+            "default": 30
+          },
+          "gender": {
+            "type": "string",
+            "title": "Gender",
+            "description": "Patient gender (Male, Female, Other)",
+            "default": "Male"
+          },
+          "abha_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Abha Id",
+            "description": "14-digit ABHA number or ABHA address"
+          },
+          "phone_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Number",
+            "description": "Registered mobile number"
+          },
+          "encrypted_payload": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encrypted Payload",
+            "description": "Optional encrypted demographic block"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "name",
+          "abha_id"
+        ],
+        "title": "ABDMWebhookPayload",
+        "description": "Demographic profile payload sent by the ABDM Gateway / ABHA app upon scan."
+      },
+      "ABDMWebhookResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Acknowledgement status",
+            "default": "ACK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Status message",
+            "default": "Demographic profile received and broadcast"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token",
+            "description": "Transaction token"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Linked session ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "ABDMWebhookResponse",
+        "description": "Response returned to ABDM Gateway acknowledging profile ingestion."
+      },
+      "AllocateResourceRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Active patient session UUID"
+          },
+          "symptoms_text": {
+            "type": "string",
+            "title": "Symptoms Text",
+            "description": "Presenting symptoms text. PHI - never log.",
+            "default": ""
+          },
+          "triage_priority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triage Priority",
+            "description": "Optional triage priority e.g. RED, CRITICAL"
+          },
+          "news2_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "News2 Score",
+            "description": "Optional aggregate NEWS2 score (0-20)"
+          },
+          "needs_wheelchair": {
+            "type": "boolean",
+            "title": "Needs Wheelchair",
+            "description": "Whether patient requires wheelchair assistance",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "AllocateResourceRequest",
+        "description": "Request body for POST /api/resources/allocate."
+      },
+      "AllocateResourceResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "resource_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Id",
+            "description": "Allocated room or bay (e.g. RESUS-BAY-01, ISO-ROOM-01)"
+          },
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type",
+            "description": "RESUS_BAY, ISOLATION_ROOM, OPD_CHAMBER, or STANDARD_WAITING"
+          },
+          "porter_ticket_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Porter Ticket Id",
+            "description": "Dispatched wheelchair porter ticket (e.g. PORTER-1234)"
+          },
+          "isolation_precaution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isolation Precaution",
+            "description": "Infection precaution e.g. AIRBORNE_CONTACT"
+          },
+          "instructions_en": {
+            "type": "string",
+            "title": "Instructions En"
+          },
+          "instructions_hi": {
+            "type": "string",
+            "title": "Instructions Hi"
+          },
+          "allocated_at": {
+            "type": "string",
+            "title": "Allocated At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "resource_type",
+          "instructions_en",
+          "instructions_hi",
+          "allocated_at",
+          "message"
+        ],
+        "title": "AllocateResourceResponse",
+        "description": "Response body for POST /api/resources/allocate."
+      },
+      "AuditChainVerificationResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Target session identifier"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid",
+            "description": "Whether the cryptographic hash chain is intact"
+          },
+          "checked_events": {
+            "type": "integer",
+            "title": "Checked Events",
+            "description": "Total count of audit events verified"
+          },
+          "genesis_hash": {
+            "type": "string",
+            "title": "Genesis Hash",
+            "description": "Root SHA-256 genesis hash ('0'*64)"
+          },
+          "head_hash": {
+            "type": "string",
+            "title": "Head Hash",
+            "description": "Latest verified block SHA-256 hash"
+          },
+          "broken_at_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Broken At Seq",
+            "description": "Sequence number where tampering was detected, or None"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Forensic verification summary message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "is_valid",
+          "checked_events",
+          "genesis_hash",
+          "head_hash",
+          "message"
+        ],
+        "title": "AuditChainVerificationResponse",
+        "description": "Response schema for GET /api/audit/verify-chain/{session_id}."
+      },
+      "BayStatus": {
+        "properties": {
+          "bay_id": {
+            "type": "string",
+            "title": "Bay Id"
+          },
+          "is_occupied": {
+            "type": "boolean",
+            "title": "Is Occupied"
+          },
+          "assigned_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Session Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bay_id",
+          "is_occupied"
+        ],
+        "title": "BayStatus",
+        "description": "Real-time status of a single Resuscitation Bay."
+      },
+      "Body_transcribe_audio_api_speech_transcribe_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "Audio recording file (webm/wav)"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Target language code (e.g. 'hi', 'en', 'auto')",
+            "default": "auto"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Optional session ID context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_transcribe_audio_api_speech_transcribe_post"
+      },
+      "Body_upload_document_api_documents_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type",
+            "default": "prescription"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "session_id"
+        ],
+        "title": "Body_upload_document_api_documents_upload_post"
+      },
+      "CardiovascularScreeningRequest": {
+        "properties": {
+          "features": {
+            "additionalProperties": true,
+            "type": "object",
+            "maxProperties": 64,
+            "minProperties": 1,
+            "title": "Features"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "features"
+        ],
+        "title": "CardiovascularScreeningRequest",
+        "description": "Feature payload accepted from the kiosk or a clinician console."
+      },
+      "CardiovascularScreeningResult": {
+        "properties": {
+          "cad": {
+            "$ref": "#/components/schemas/RiskEstimate"
+          },
+          "vessels": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VesselRisk"
+            },
+            "type": "object",
+            "title": "Vessels"
+          },
+          "explanations": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/ExplanationItem"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Explanations"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Meta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cad",
+          "vessels",
+          "explanations",
+          "meta"
+        ],
+        "title": "CardiovascularScreeningResult",
+        "description": "CardioVision output shared by the API, UI, and referral workflow."
+      },
+      "CaregiverPassRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Active session UUID"
+          },
+          "caregiver_phone": {
+            "type": "string",
+            "title": "Caregiver Phone",
+            "description": "Caregiver mobile number (E.164 formatted)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "caregiver_phone"
+        ],
+        "title": "CaregiverPassRequest",
+        "description": "Request body for POST /api/intake/caregiver-pass."
+      },
+      "CaregiverPassResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "caregiver_pass_id": {
+            "type": "string",
+            "title": "Caregiver Pass Id",
+            "description": "Issued companion pass identifier (e.g. CG-A1B2)"
+          },
+          "issued_at": {
+            "type": "string",
+            "title": "Issued At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "caregiver_pass_id",
+          "issued_at",
+          "message"
+        ],
+        "title": "CaregiverPassResponse",
+        "description": "Response body for POST /api/intake/caregiver-pass."
+      },
+      "ClinicalSummaryResponse": {
+        "properties": {
+          "summary_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Summary Id",
+            "description": "Summary identifier"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Session identifier"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/SummarySectionResponse"
+            },
+            "type": "array",
+            "title": "Sections",
+            "description": "Bilingual summary sections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary_id",
+          "session_id",
+          "sections"
+        ],
+        "title": "ClinicalSummaryResponse",
+        "description": "Bilingual clinical summary response."
+      },
+      "ClinicianOverviewResponse": {
+        "properties": {
+          "intakes_completed": {
+            "type": "integer",
+            "title": "Intakes Completed"
+          },
+          "avg_intake_time_seconds": {
+            "type": "number",
+            "title": "Avg Intake Time Seconds"
+          },
+          "documents_processed": {
+            "type": "integer",
+            "title": "Documents Processed"
+          },
+          "red_flags_caught": {
+            "type": "integer",
+            "title": "Red Flags Caught"
+          },
+          "active_red_flags": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Active Red Flags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intakes_completed",
+          "avg_intake_time_seconds",
+          "documents_processed",
+          "red_flags_caught",
+          "active_red_flags"
+        ],
+        "title": "ClinicianOverviewResponse",
+        "description": "Dashboard KPIs and red flags."
+      },
+      "ClinicianSessionDetailResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "token_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Number"
+          },
+          "wait_time_seconds": {
+            "type": "integer",
+            "title": "Wait Time Seconds"
+          },
+          "patient_profile": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Profile"
+          },
+          "chief_complaint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chief Complaint"
+          },
+          "triage_alerts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Triage Alerts"
+          },
+          "timeline_events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Timeline Events"
+          },
+          "news2_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "News2 Score"
+          },
+          "news2_risk_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "News2 Risk Band"
+          },
+          "vitals": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vitals"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "wait_time_seconds",
+          "triage_alerts",
+          "timeline_events"
+        ],
+        "title": "ClinicianSessionDetailResponse",
+        "description": "Full detail for a patient session including Phase X.2 vitals."
+      },
+      "DepartmentLoad": {
+        "properties": {
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "Department identifier"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "description": "Human-readable department name"
+          },
+          "active_queue_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Active Queue Count",
+            "description": "Active queue depth"
+          },
+          "predicted_wait_minutes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Predicted Wait Minutes",
+            "description": "Estimated wait time in minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department",
+          "display_name",
+          "active_queue_count",
+          "predicted_wait_minutes"
+        ],
+        "title": "DepartmentLoad",
+        "description": "Active congestion and estimated wait time for a clinical department."
+      },
+      "DoctorListResponse": {
+        "properties": {
+          "doctors": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorResponse"
+            },
+            "type": "array",
+            "title": "Doctors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "doctors"
+        ],
+        "title": "DoctorListResponse",
+        "description": "API response for a list of doctors."
+      },
+      "DoctorResponse": {
+        "properties": {
+          "doctor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Doctor Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "degrees": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Degrees"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "sub_speciality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Speciality"
+          },
+          "clinical_interests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Clinical Interests"
+          },
+          "experience_years": {
+            "type": "integer",
+            "title": "Experience Years"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "seniority_tier": {
+            "type": "string",
+            "title": "Seniority Tier"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count"
+          },
+          "consultation_fee_inr": {
+            "type": "number",
+            "title": "Consultation Fee Inr"
+          },
+          "registration_fee_inr": {
+            "type": "number",
+            "title": "Registration Fee Inr"
+          },
+          "followup_free_days": {
+            "type": "integer",
+            "title": "Followup Free Days"
+          },
+          "pmjay_accepted": {
+            "type": "boolean",
+            "title": "Pmjay Accepted"
+          },
+          "tpa_insurers_accepted": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tpa Insurers Accepted"
+          },
+          "chamber_room": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chamber Room"
+          },
+          "availability_status": {
+            "type": "string",
+            "title": "Availability Status"
+          },
+          "opd_start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opd Start Time"
+          },
+          "opd_end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opd End Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "doctor_id",
+          "full_name",
+          "degrees",
+          "department",
+          "clinical_interests",
+          "experience_years",
+          "languages",
+          "seniority_tier",
+          "review_count",
+          "consultation_fee_inr",
+          "registration_fee_inr",
+          "followup_free_days",
+          "pmjay_accepted",
+          "tpa_insurers_accepted",
+          "availability_status"
+        ],
+        "title": "DoctorResponse",
+        "description": "API response for a single doctor profile."
+      },
+      "DocumentScan": {
+        "properties": {
+          "scan_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scan Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "document_type": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "image_ref": {
+            "type": "string",
+            "title": "Image Ref",
+            "description": "Storage reference to the image file."
+          },
+          "extracted_text": {
+            "type": "string",
+            "title": "Extracted Text",
+            "description": "OCR-extracted text. May contain PHI \u2014 never log."
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "OCR confidence [0.0, 1.0]."
+          }
+        },
+        "type": "object",
+        "required": [
+          "scan_id",
+          "session_id",
+          "document_type",
+          "image_ref",
+          "extracted_text",
+          "confidence"
+        ],
+        "title": "DocumentScan",
+        "description": "A scanned physical medical document.\n\nAttributes:\n    scan_id: Unique identifier for this scan.\n    session_id: Session this document belongs to.\n    document_type: Category of the document.\n    image_ref: Storage key/path to the image file.\n    extracted_text: Full text extracted by the OCR pipeline (may contain PHI).\n    confidence: OCR extraction confidence score [0.0, 1.0]."
+      },
+      "DocumentType": {
+        "type": "string",
+        "enum": [
+          "prescription",
+          "lab_report",
+          "discharge_summary",
+          "referral",
+          "other"
+        ],
+        "title": "DocumentType",
+        "description": "Category of scanned medical document."
+      },
+      "ExplanationItem": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "shap": {
+            "type": "number",
+            "title": "Shap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "value",
+          "shap"
+        ],
+        "title": "ExplanationItem",
+        "description": "A model contribution in calibrated log-odds space."
+      },
+      "FHIRBundleResponse": {
+        "properties": {
+          "bundle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bundle Id",
+            "description": "FHIR Bundle identifier"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Session identifier"
+          },
+          "bundle_json": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Bundle Json",
+            "description": "FHIR R4 resource JSON"
+          },
+          "resource_count": {
+            "type": "integer",
+            "title": "Resource Count",
+            "description": "Number of entries in bundle",
+            "default": 1
+          },
+          "validation_passed": {
+            "type": "boolean",
+            "title": "Validation Passed",
+            "description": "Schema validation status",
+            "default": true
+          },
+          "transcript_hash": {
+            "type": "string",
+            "title": "Transcript Hash",
+            "description": "Cryptographic SHA-256 transcript hash"
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At",
+            "description": "ISO 8601 generation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bundle_id",
+          "session_id",
+          "bundle_json",
+          "transcript_hash",
+          "generated_at"
+        ],
+        "title": "FHIRBundleResponse",
+        "description": "FHIR R4 Bundle response."
+      },
+      "GenerateSummaryRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Target session UUID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "GenerateSummaryRequest",
+        "description": "Request to generate bilingual summary and FHIR bundle for a session."
+      },
+      "GenerateSummaryResponse": {
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/ClinicalSummaryResponse",
+            "description": "Clinical summary"
+          },
+          "bundle_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Bundle Id",
+            "description": "Generated FHIR bundle identifier"
+          },
+          "transcript_hash": {
+            "type": "string",
+            "title": "Transcript Hash",
+            "description": "SHA-256 source transcript hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "bundle_id",
+          "transcript_hash"
+        ],
+        "title": "GenerateSummaryResponse",
+        "description": "Combined summary generation response."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IsolationRoomStatus": {
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "title": "Room Id"
+          },
+          "is_occupied": {
+            "type": "boolean",
+            "title": "Is Occupied"
+          },
+          "assigned_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Session Id"
+          },
+          "precaution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precaution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "room_id",
+          "is_occupied"
+        ],
+        "title": "IsolationRoomStatus",
+        "description": "Real-time status of a single Negative-Pressure Isolation Room."
+      },
+      "LabOrderItemSchema": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "Unique test code (e.g. ECG-01, LAB-TROP)"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En",
+            "description": "Test name in English"
+          },
+          "name_hi": {
+            "type": "string",
+            "title": "Name Hi",
+            "description": "Test name in Hindi"
+          },
+          "urgency": {
+            "type": "string",
+            "title": "Urgency",
+            "description": "Order clinical urgency (STAT, URGENT, ROUTINE)"
+          },
+          "bay_room": {
+            "type": "string",
+            "title": "Bay Room",
+            "description": "Facility room or diagnostic bay for collection"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name_en",
+          "name_hi",
+          "urgency",
+          "bay_room"
+        ],
+        "title": "LabOrderItemSchema",
+        "description": "Schema for a single standing pre-consultation lab or radiology order."
+      },
+      "LinkCareContextRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "abha_id": {
+            "type": "string",
+            "minLength": 4,
+            "title": "Abha Id",
+            "description": "Patient ABHA ID or ABHA Address"
+          },
+          "soap_note": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Soap Note",
+            "description": "Clinician SOAP note"
+          },
+          "prescribed_medications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Prescribed Medications",
+            "description": "List of prescribed medications"
+          },
+          "clinician_override_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clinician Override Reason",
+            "description": "Mandatory clinician override justification if critical contraindications are detected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "abha_id",
+          "soap_note"
+        ],
+        "title": "LinkCareContextRequest",
+        "description": "Request body for POST /api/abdm/link-care-context."
+      },
+      "LinkCareContextResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "care_context_reference": {
+            "type": "string",
+            "title": "Care Context Reference"
+          },
+          "pharmacy_token": {
+            "type": "string",
+            "title": "Pharmacy Token"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "LINKED"
+          },
+          "linked_at": {
+            "type": "string",
+            "title": "Linked At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "care_context_reference",
+          "pharmacy_token",
+          "linked_at",
+          "message"
+        ],
+        "title": "LinkCareContextResponse",
+        "description": "Response body for POST /api/abdm/link-care-context."
+      },
+      "OfflineSessionPayload": {
+        "properties": {
+          "client_session_uuid": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Session Uuid",
+            "description": "Deterministic client session UUID"
+          },
+          "created_at_iso": {
+            "type": "string",
+            "title": "Created At Iso",
+            "description": "ISO 8601 creation timestamp"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Selected language code",
+            "default": "en"
+          },
+          "symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Symptoms",
+            "description": "Patient symptom strings"
+          },
+          "vitals": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vitals",
+            "description": "Optional recorded vitals"
+          },
+          "offline_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offline Token",
+            "description": "Client-minted offline token"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id",
+            "description": "Tenant ID",
+            "default": "default"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id",
+            "description": "Department ID",
+            "default": "general"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_session_uuid",
+          "created_at_iso"
+        ],
+        "title": "OfflineSessionPayload",
+        "description": "Offline intake payload queued in IndexedDB."
+      },
+      "PMJAYVerificationResult": {
+        "properties": {
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible"
+          },
+          "pmjay_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pmjay Id"
+          },
+          "beneficiary_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beneficiary Name"
+          },
+          "state_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State Code"
+          },
+          "coverage_amount_inr": {
+            "type": "integer",
+            "title": "Coverage Amount Inr"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Verified At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "eligible",
+          "coverage_amount_inr",
+          "verified_at",
+          "message"
+        ],
+        "title": "PMJAYVerificationResult",
+        "description": "Result of a PM-JAY eligibility verification check."
+      },
+      "PackageListResponse": {
+        "properties": {
+          "packages": {
+            "items": {
+              "$ref": "#/components/schemas/PackageResponse"
+            },
+            "type": "array",
+            "title": "Packages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "packages"
+        ],
+        "title": "PackageListResponse",
+        "description": "API response for a list of packages."
+      },
+      "PackageResponse": {
+        "properties": {
+          "package_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Package Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "inclusions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inclusions"
+          },
+          "lab_tests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Lab Tests"
+          },
+          "price_inr": {
+            "type": "number",
+            "title": "Price Inr"
+          },
+          "discounted_price_inr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discounted Price Inr"
+          },
+          "pmjay_covered": {
+            "type": "boolean",
+            "title": "Pmjay Covered"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "turnaround_hours": {
+            "type": "integer",
+            "title": "Turnaround Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "package_id",
+          "title",
+          "category",
+          "description",
+          "inclusions",
+          "lab_tests",
+          "price_inr",
+          "pmjay_covered",
+          "department",
+          "turnaround_hours"
+        ],
+        "title": "PackageResponse",
+        "description": "API response for a single hospital package."
+      },
+      "PagePatientRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "phone_number": {
+            "type": "string",
+            "title": "Phone Number"
+          },
+          "turns_ahead": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Turns Ahead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "phone_number",
+          "turns_ahead"
+        ],
+        "title": "PagePatientRequest",
+        "description": "Request to page a patient in the virtual waiting room."
+      },
+      "PagePatientResponse": {
+        "properties": {
+          "paged": {
+            "type": "boolean",
+            "title": "Paged"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "turns_ahead": {
+            "type": "integer",
+            "title": "Turns Ahead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "paged",
+          "token",
+          "turns_ahead"
+        ],
+        "title": "PagePatientResponse",
+        "description": "Response for paging a patient."
+      },
+      "PorterTicketStatus": {
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "title": "Ticket Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "DISPATCHED"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket_id",
+          "session_id",
+          "created_at"
+        ],
+        "title": "PorterTicketStatus",
+        "description": "Real-time status of an active wheelchair / stretcher porter ticket."
+      },
+      "PurgeRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Purge reason: walk_away|user_request",
+            "default": "walk_away"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "PurgeRequest",
+        "description": "Request body for POST /api/session/purge (DPDP hard purge).\n\nAttributes:\n    session_id: Session to hard-delete.\n    reason: Why the purge is being triggered."
+      },
+      "PurgeResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "purged": {
+            "type": "boolean",
+            "title": "Purged"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "purged",
+          "message"
+        ],
+        "title": "PurgeResponse",
+        "description": "Response body for POST /api/session/purge.\n\nAttributes:\n    session_id: Session that was purged.\n    purged: True when the purge succeeded.\n    message: Human-readable confirmation (PHI-free)."
+      },
+      "QueueEntry": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "triage_priority": {
+            "type": "string",
+            "title": "Triage Priority",
+            "description": "critical|urgent|normal"
+          },
+          "wait_time_seconds": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wait Time Seconds"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "department_id",
+          "triage_priority",
+          "wait_time_seconds",
+          "status"
+        ],
+        "title": "QueueEntry",
+        "description": "A single entry in the clinician triage queue.\n\nAttributes:\n    session_id: Opaque session reference (no PHI).\n    department_id: Clinical department this entry belongs to.\n    triage_priority: Urgency level: critical|urgent|normal.\n    wait_time_seconds: How long the patient has been waiting.\n    status: Current lifecycle status of the session."
+      },
+      "QueueResponse": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/QueueEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "entries",
+          "total_count"
+        ],
+        "title": "QueueResponse",
+        "description": "Response body for GET /api/clinician/queue.\n\nAttributes:\n    department_id: The department whose queue is returned.\n    entries: Ordered list of queue entries (highest priority first).\n    total_count: Total number of active sessions in the queue."
+      },
+      "RecordVitalsRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "spo2_percent": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 50.0,
+            "title": "Spo2 Percent",
+            "description": "SpO2 percentage (50-100)"
+          },
+          "systolic_bp_mmhg": {
+            "type": "integer",
+            "maximum": 300.0,
+            "minimum": 40.0,
+            "title": "Systolic Bp Mmhg",
+            "description": "Systolic BP (40-300 mmHg)"
+          },
+          "diastolic_bp_mmhg": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 20.0,
+            "title": "Diastolic Bp Mmhg",
+            "description": "Diastolic BP (20-200 mmHg)"
+          },
+          "pulse_bpm": {
+            "type": "integer",
+            "maximum": 250.0,
+            "minimum": 20.0,
+            "title": "Pulse Bpm",
+            "description": "Pulse rate in bpm (20-250)"
+          },
+          "temperature_c": {
+            "type": "number",
+            "maximum": 45.0,
+            "minimum": 30.0,
+            "title": "Temperature C",
+            "description": "Temperature in C (30.0-45.0)"
+          },
+          "respiration_rate": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 4.0,
+            "title": "Respiration Rate",
+            "description": "Respiration rate in bpm (4-60)",
+            "default": 16
+          },
+          "supplemental_o2": {
+            "type": "boolean",
+            "title": "Supplemental O2",
+            "description": "Supplemental O2 active",
+            "default": false
+          },
+          "avpu_alert": {
+            "type": "boolean",
+            "title": "Avpu Alert",
+            "description": "Conscious & Alert on AVPU scale",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "spo2_percent",
+          "systolic_bp_mmhg",
+          "diastolic_bp_mmhg",
+          "pulse_bpm",
+          "temperature_c"
+        ],
+        "title": "RecordVitalsRequest",
+        "description": "Request body for POST /api/intake/vitals.\n\nStrict physiological bounds matching human survival limits."
+      },
+      "RecordVitalsResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "news2_score": {
+            "type": "integer",
+            "title": "News2 Score"
+          },
+          "news2_risk_band": {
+            "type": "string",
+            "title": "News2 Risk Band"
+          },
+          "triggers_red_veto": {
+            "type": "boolean",
+            "title": "Triggers Red Veto"
+          },
+          "triage_alerts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Triage Alerts"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "news2_score",
+          "news2_risk_band",
+          "triggers_red_veto",
+          "message"
+        ],
+        "title": "RecordVitalsResponse",
+        "description": "Response body for POST /api/intake/vitals."
+      },
+      "ResourceStatusResponse": {
+        "properties": {
+          "resus_bays": {
+            "items": {
+              "$ref": "#/components/schemas/BayStatus"
+            },
+            "type": "array",
+            "title": "Resus Bays"
+          },
+          "isolation_rooms": {
+            "items": {
+              "$ref": "#/components/schemas/IsolationRoomStatus"
+            },
+            "type": "array",
+            "title": "Isolation Rooms"
+          },
+          "active_porters": {
+            "items": {
+              "$ref": "#/components/schemas/PorterTicketStatus"
+            },
+            "type": "array",
+            "title": "Active Porters"
+          },
+          "total_resus_occupied": {
+            "type": "integer",
+            "title": "Total Resus Occupied"
+          },
+          "total_isolation_occupied": {
+            "type": "integer",
+            "title": "Total Isolation Occupied"
+          },
+          "total_active_porters": {
+            "type": "integer",
+            "title": "Total Active Porters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resus_bays",
+          "isolation_rooms",
+          "active_porters",
+          "total_resus_occupied",
+          "total_isolation_occupied",
+          "total_active_porters"
+        ],
+        "title": "ResourceStatusResponse",
+        "description": "Live occupancy and dispatch status grid across all hospital facility resources."
+      },
+      "RespondRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "response_text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Response Text",
+            "description": "Patient response. PHI \u2014 never log."
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "Input confidence score",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "response_text"
+        ],
+        "title": "RespondRequest",
+        "description": "Request body for POST /api/intake/respond.\n\nAttributes:\n    session_id: Existing session to continue.\n    response_text: Patient's answer text. Contains PHI \u2014 never log.\n    confidence: ASR or input confidence score [0.0, 1.0]."
+      },
+      "RespondResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "intake_progress": {
+            "type": "number",
+            "title": "Intake Progress"
+          },
+          "human_fallback_triggered": {
+            "type": "boolean",
+            "title": "Human Fallback Triggered"
+          },
+          "triage_alerts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Triage Alerts"
+          },
+          "next_question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "intake_progress",
+          "human_fallback_triggered",
+          "triage_alerts",
+          "next_question"
+        ],
+        "title": "RespondResponse",
+        "description": "Response body for POST /api/intake/respond.\n\nAttributes:\n    session_id: Session that was updated.\n    intake_progress: Updated completion fraction [0.0, 1.0].\n    human_fallback_triggered: True when CFI has breached its threshold.\n    triage_alerts: List of red-flag alert summaries (PHI-free).\n    next_question: Next question text to display/speak, or None if complete."
+      },
+      "RiskEstimate": {
+        "properties": {
+          "prob": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Prob"
+          },
+          "label": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Label"
+          },
+          "ci": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ci"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prob",
+          "label"
+        ],
+        "title": "RiskEstimate",
+        "description": "A calibrated risk estimate; it is not a diagnosis."
+      },
+      "SafetyAlertSchema": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id",
+            "description": "Safety rule identifier (e.g. RULE-DDI-001)"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity",
+            "description": "CRITICAL_CONTRAINDICATION, CAUTION, or INFO"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Short medical title of alert"
+          },
+          "clinical_detail": {
+            "type": "string",
+            "title": "Clinical Detail",
+            "description": "Detailed pharmacological mechanism and clinical hazard"
+          },
+          "offending_agents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Offending Agents",
+            "description": "List of interacting drugs or contraindicating conditions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_id",
+          "severity",
+          "title",
+          "clinical_detail",
+          "offending_agents"
+        ],
+        "title": "SafetyAlertSchema",
+        "description": "Clinical safety alert schema for contraindications and precautions."
+      },
+      "SelectDoctorRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "doctor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Doctor Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "doctor_id"
+        ],
+        "title": "SelectDoctorRequest",
+        "description": "Request to select a doctor for a session."
+      },
+      "SelectDoctorResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "doctor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Doctor Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "doctor_id",
+          "message"
+        ],
+        "title": "SelectDoctorResponse",
+        "description": "Response after selecting a doctor."
+      },
+      "SelectPackageRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "package_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Package Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "package_ids"
+        ],
+        "title": "SelectPackageRequest",
+        "description": "Request to select packages for a session."
+      },
+      "SelectPackageResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "package_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Package Ids"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "package_ids",
+          "message"
+        ],
+        "title": "SelectPackageResponse",
+        "description": "Response after selecting packages."
+      },
+      "StandingOrderRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Active session UUID"
+          },
+          "symptoms_text": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Symptoms Text",
+            "description": "Presenting symptoms text. PHI - never log."
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 125.0,
+            "minimum": 0.0,
+            "title": "Age",
+            "description": "Patient age in years",
+            "default": 30
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "symptoms_text"
+        ],
+        "title": "StandingOrderRequest",
+        "description": "Request body for POST /api/intake/standing-orders."
+      },
+      "StandingOrderResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/LabOrderItemSchema"
+            },
+            "type": "array",
+            "title": "Orders"
+          },
+          "clinical_rationale": {
+            "type": "string",
+            "title": "Clinical Rationale"
+          },
+          "estimated_time_saved_minutes": {
+            "type": "integer",
+            "title": "Estimated Time Saved Minutes"
+          },
+          "requires_fasting": {
+            "type": "boolean",
+            "title": "Requires Fasting"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "orders",
+          "clinical_rationale",
+          "estimated_time_saved_minutes",
+          "requires_fasting",
+          "message"
+        ],
+        "title": "StandingOrderResponse",
+        "description": "Response body for POST /api/intake/standing-orders."
+      },
+      "StartSessionRequest": {
+        "properties": {
+          "patient_language": {
+            "type": "string",
+            "title": "Patient Language",
+            "description": "BCP-47 language code",
+            "default": "en"
+          },
+          "tenant_id": {
+            "type": "string",
+            "title": "Tenant Id",
+            "description": "Multi-tenant facility identifier",
+            "default": "default"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id",
+            "description": "Target clinical department",
+            "default": "general"
+          },
+          "informant_type": {
+            "type": "string",
+            "title": "Informant Type",
+            "description": "Who is answering: patient|relative|caregiver",
+            "default": "patient"
+          }
+        },
+        "type": "object",
+        "title": "StartSessionRequest",
+        "description": "Request body for POST /api/intake/start.\n\nAttributes:\n    patient_language: BCP-47 language code for the session.\n    tenant_id: Multi-tenant identifier for the hospital/facility.\n    department_id: Target clinical department.\n    informant_type: Who is physically answering (patient|relative|caregiver)."
+      },
+      "StartSessionResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "intake_progress": {
+            "type": "number",
+            "title": "Intake Progress"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "intake_progress",
+          "message"
+        ],
+        "title": "StartSessionResponse",
+        "description": "Response body for POST /api/intake/start.\n\nAttributes:\n    session_id: Unique identifier for the created session.\n    status: Current session lifecycle status string.\n    intake_progress: Completion fraction [0.0, 1.0].\n    message: Human-readable status message (PHI-free)."
+      },
+      "SummarySectionResponse": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Section title (e.g. Chief Complaint)"
+          },
+          "content_en": {
+            "type": "string",
+            "title": "Content En",
+            "description": "English content"
+          },
+          "content_local": {
+            "type": "string",
+            "title": "Content Local",
+            "description": "Local language content"
+          },
+          "clinical_domain": {
+            "type": "string",
+            "title": "Clinical Domain",
+            "description": "Clinical domain identifier"
+          },
+          "source_entities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Entities",
+            "description": "Source entities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "content_en",
+          "content_local",
+          "clinical_domain"
+        ],
+        "title": "SummarySectionResponse",
+        "description": "Section of a clinical summary."
+      },
+      "SurgeRadarResponse": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp",
+            "description": "UTC ISO timestamp of telemetry snapshot"
+          },
+          "department_loads": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentLoad"
+            },
+            "type": "array",
+            "title": "Department Loads"
+          },
+          "syndromic_clusters": {
+            "items": {
+              "$ref": "#/components/schemas/SyndromicCluster"
+            },
+            "type": "array",
+            "title": "Syndromic Clusters"
+          },
+          "vitals_escalation_rate": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Vitals Escalation Rate",
+            "description": "Percentage of intakes triggering NEWS2 red veto"
+          },
+          "total_active_intakes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Active Intakes",
+            "description": "Total active sessions across wards"
+          },
+          "overall_surge_alert": {
+            "type": "boolean",
+            "title": "Overall Surge Alert",
+            "description": "True if any syndromic cluster or load breached"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "department_loads",
+          "syndromic_clusters",
+          "vitals_escalation_rate",
+          "total_active_intakes",
+          "overall_surge_alert"
+        ],
+        "title": "SurgeRadarResponse",
+        "description": "Response payload for GET /api/analytics/surge-radar."
+      },
+      "SyncBatchRequest": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/OfflineSessionPayload"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Sessions",
+            "description": "Batch of up to 50 offline sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions"
+        ],
+        "title": "SyncBatchRequest",
+        "description": "Request body for POST /api/intake/sync-batch. Up to 50 sessions."
+      },
+      "SyncBatchResponse": {
+        "properties": {
+          "synced_count": {
+            "type": "integer",
+            "title": "Synced Count"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SyncedSessionResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "synced_count",
+          "results",
+          "message"
+        ],
+        "title": "SyncBatchResponse",
+        "description": "Response body for POST /api/intake/sync-batch."
+      },
+      "SyncedSessionResult": {
+        "properties": {
+          "client_session_uuid": {
+            "type": "string",
+            "title": "Client Session Uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "token_number": {
+            "type": "string",
+            "title": "Token Number"
+          },
+          "is_existing": {
+            "type": "boolean",
+            "title": "Is Existing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_session_uuid",
+          "session_id",
+          "token_number",
+          "is_existing"
+        ],
+        "title": "SyncedSessionResult",
+        "description": "Result of reconciling a single offline session."
+      },
+      "SyndromicCluster": {
+        "properties": {
+          "cluster_name": {
+            "type": "string",
+            "title": "Cluster Name",
+            "description": "Cluster identifier"
+          },
+          "display_title": {
+            "type": "string",
+            "title": "Display Title",
+            "description": "Human-readable clinical syndrome"
+          },
+          "count_last_24h": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count Last 24H",
+            "description": "Intake count within 24-hour window"
+          },
+          "threshold": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Threshold",
+            "description": "Outbreak escalation threshold"
+          },
+          "surge_alert": {
+            "type": "boolean",
+            "title": "Surge Alert",
+            "description": "True if cluster exceeds safety threshold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cluster_name",
+          "display_title",
+          "count_last_24h",
+          "threshold",
+          "surge_alert"
+        ],
+        "title": "SyndromicCluster",
+        "description": "Epidemiological syndromic outbreak tracking metric."
+      },
+      "TokenRequest": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Client Id",
+            "description": "Client identifier"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "Role to assume",
+            "default": "Kiosk_Device"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id"
+        ],
+        "title": "TokenRequest"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "TokenResponse"
+      },
+      "TranscribeResponse": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Transcribed speech text"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Detected or processed language code",
+            "default": "en"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "description": "Transcription confidence score between 0.0 and 1.0",
+            "default": 0.98
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "TranscribeResponse",
+        "description": "Transcription response payload."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerifyPMJAYRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "pmjay_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pmjay Id",
+            "description": "Optional PM-JAY Beneficiary ID"
+          },
+          "abha_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Number",
+            "description": "Optional ABHA Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "VerifyPMJAYRequest",
+        "description": "Request to verify PM-JAY eligibility."
+      },
+      "VerifyRxSafetyRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Patient session UUID"
+          },
+          "prescribed_medications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Prescribed Medications",
+            "description": "List of newly prescribed medications"
+          },
+          "existing_medications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Existing Medications",
+            "description": "List of existing or OCR-extracted medications"
+          },
+          "allergies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allergies",
+            "description": "Patient declared drug allergies"
+          },
+          "symptoms_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symptoms Text",
+            "description": "Optional symptoms text. PHI - never log."
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "prescribed_medications"
+        ],
+        "title": "VerifyRxSafetyRequest",
+        "description": "Request body for POST /api/clinician/verify-rx-safety."
+      },
+      "VerifyRxSafetyResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "is_safe": {
+            "type": "boolean",
+            "title": "Is Safe"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity",
+            "description": "SAFE, CAUTION, or CRITICAL_CONTRAINDICATION"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/SafetyAlertSchema"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "requires_override": {
+            "type": "boolean",
+            "title": "Requires Override"
+          },
+          "evaluated_at": {
+            "type": "string",
+            "title": "Evaluated At"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "is_safe",
+          "severity",
+          "alerts",
+          "requires_override",
+          "evaluated_at",
+          "message"
+        ],
+        "title": "VerifyRxSafetyResponse",
+        "description": "Response body for POST /api/clinician/verify-rx-safety."
+      },
+      "VesselRisk": {
+        "properties": {
+          "prob": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Prob"
+          },
+          "label": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "prob",
+          "label"
+        ],
+        "title": "VesselRisk",
+        "description": "Probability for a vessel-level screening target."
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
