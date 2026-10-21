@@ -17,6 +17,9 @@ Read only this sequence first; it is designed to preserve context:
 7. `docs/SEVA_SUBMISSION.md` — frozen demo scope and claim boundaries.
 8. Task-specific ADRs in `docs/decisions/`.
 
+After this first-session sequence, read `docs/FEATURES.md` and
+`docs/tasks/active/README.md` before starting non-trivial implementation work.
+
 Do not read the entire historical `docs/tasks/` directory to choose work. It
 contains older planning material and is not a reliable current backlog.
 
@@ -128,6 +131,7 @@ uv run --extra dev ruff check src/ tests/
 uv run --extra dev ruff format --check src/ tests/
 uv run --extra dev mypy src/ --strict
 cd frontend && npm run lint && npm run build
+python scripts/check_repo_hygiene.py
 ```
 
 On Windows without `make`, run the `uv` and `npm` commands directly. Run the
@@ -168,6 +172,21 @@ contract → port → mock adapter → domain/service → API → generated clie
 Use one branch and one logical commit per capability. Follow
 `docs/WORKFLOW.md` and `docs/AI_ORCHESTRATION.md`.
 
+## Pull-request-only delivery
+
+- Never commit directly on `main` or `master`.
+- Never push directly to `main` or `master`.
+- If the current branch is `main` or `master`, create a task branch before editing.
+- Agents may push only their task branch and may open or update a pull request.
+- Agents must not merge pull requests; a human owner merges after required review
+  and required checks pass.
+- Before pushing a task branch, inspect `git status`, `git diff`,
+  `git diff --check`, and the staged file list. Stage only files allowed by the
+  task packet.
+- A pull request must link its feature ID/task packet and record exact checks.
+- GitHub branch protection is the enforcement layer; local instructions alone are
+  not considered sufficient.
+
 ## Documentation governance
 
 - `AGENTS.md` is the constitution and must stay short enough to read every
@@ -176,6 +195,9 @@ Use one branch and one logical commit per capability. Follow
 - `docs/STATUS.md` is the current health/blocker record.
 - `docs/TEAM_CAPACITY.md` owns team lanes and delivery capacity.
 - `docs/SEVA_SUBMISSION.md` owns the frozen competition/demo scope.
+- `docs/FEATURES.md` owns the active feature index and feature status links.
+- `docs/tasks/active/` owns bounded implementation packets; historical
+  `docs/tasks/` files are not the active backlog.
 - `docs/INTEGRATIONS.md` owns live-vs-mock integration truth.
 - `docs/TESTS.md` owns executable verification guidance.
 - `docs/DEMO_EVIDENCE.md` owns screenshots, recording, and submission evidence.

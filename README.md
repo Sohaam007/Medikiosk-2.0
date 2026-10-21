@@ -34,6 +34,8 @@ For a new coding session, read:
 6. `docs/TESTS.md`
 7. `docs/TEAM_CAPACITY.md`
 8. `docs/SEVA_SUBMISSION.md`
+9. `docs/FEATURES.md`
+10. `docs/tasks/active/README.md`
 
 For agent workflow, read `docs/AI_ORCHESTRATION.md`. For durable decisions,
 read `docs/decisions/README.md` and the relevant ADR.
@@ -164,11 +166,14 @@ not extend them without an explicit migration task.
 - `docs/TESTS.md` — commands and test navigation.
 - `docs/REGRESSION.md` — downstream verification map.
 - `docs/ROADMAP.md` — sequenced production roadmap.
+- `docs/FEATURES.md` — active feature register and task links.
+- `docs/tasks/active/` — bounded task packets for current work.
 - `docs/TEAM_CAPACITY.md` — five-person ownership and parallel execution.
 - `docs/SEVA_SUBMISSION.md` — frozen demo scope and submission claims.
 - `docs/DEMO_EVIDENCE.md` — screenshots, recording, and verification evidence.
 - `docs/CLINICAL_REGULATORY.md` — pilot-readiness and external review gates.
 - `docs/AI_ORCHESTRATION.md` — agent task and handoff protocol.
+- `submission/` — final judge-facing materials; raw and draft material is ignored.
 - `docs/SECURITY.md` — implemented controls versus target controls.
 - `docs/decisions/` — ADRs.
 

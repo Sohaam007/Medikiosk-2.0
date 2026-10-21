@@ -144,8 +144,8 @@ review process before enabling real patient traffic.
 
 ## Project guide
 
-- `medikiosk_2.0_vision.md` — SEVA product vision and phased plan
-- `seva_2026_recommendation.md` — category and problem-statement rationale
+- `docs/archive/reference/medikiosk_2.0_vision-legacy.md` — SEVA product vision and phased plan
+- `docs/archive/reference/seva_2026_recommendation-legacy.md` — category and problem-statement rationale
 - `docs/SEVA_SUBMISSION.md` — implementation scope, demo script and submission checklist
 - `docs/decisions/0008-cardiovision-boundary.md` — screening integration decision
 - `models/cardiovision/` — copied, versioned CardioVision assets

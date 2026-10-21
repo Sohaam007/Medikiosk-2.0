@@ -1,5 +1,8 @@
 # SEVA 2026 — Updated Registration Kit (MediKiosk 2.0)
 
+> Historical registration copy. Use `docs/SEVA_SUBMISSION.md` and
+> `docs/DEMO_EVIDENCE.md` for the current implemented scope and evidence rules.
+
 ## Problem Statement (Registration Form — 1000 char limit)
 
 > Copy-paste this directly into the registration form.
@@ -48,6 +51,6 @@ bridges the complete health journey: Screen → Intake → Route → Travel → 
 
 | Document | Purpose |
 |----------|---------|
-| [MediKiosk 2.0 Vision](medikiosk_2.0_vision.md) | Full platform vision, 15 features, architecture, revenue model |
-| [Original SEVA Recommendation](seva_2026_recommendation.md) | Strategic analysis and category selection |
-| [Working-model submission notes](docs/SEVA_SUBMISSION.md) | Implemented demo scope, evidence and release checklist |
+| [MediKiosk 2.0 Vision](../docs/archive/reference/medikiosk_2.0_vision-legacy.md) | Historical full platform vision, architecture, and revenue model |
+| [Original SEVA Recommendation](../docs/archive/reference/seva_2026_recommendation-legacy.md) | Historical strategic analysis and category selection |
+| [Working-model submission notes](../docs/SEVA_SUBMISSION.md) | Implemented demo scope, evidence and release checklist |

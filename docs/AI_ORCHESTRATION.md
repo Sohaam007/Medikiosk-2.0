@@ -15,13 +15,17 @@ Every implementation session starts by reading:
 AGENTS.md
 docs/CONTEXT.md
 docs/ARCHITECTURE.md
-docs/STATUS.md
-docs/INTEGRATIONS.md
-docs/TESTS.md
+ docs/STATUS.md
+ docs/INTEGRATIONS.md
+ docs/TESTS.md
 ```
 
 Then read only the task-specific files and relevant ADRs. Do not load the whole
 repository or every historical task file by default.
+
+Before implementation, find the feature in `docs/FEATURES.md` and read or create
+its bounded packet under `docs/tasks/active/`. The packet is the agent's scope
+contract; an unbounded request must be narrowed before code is changed.
 
 ## Human accountability model
 
@@ -188,6 +192,12 @@ refactor(scope): preserve behavior while restructuring
 docs(scope): update canonical guidance
 chore(scope): maintain tooling
 ```
+
+Push the commit only to the task branch and open or update a pull request. Never
+push directly to `main` or `master`, and never merge the PR. The human owner
+merges only after the required reviewer approvals and protected CI checks pass.
+The PR must link the feature ID, task packet, exact commands, generated-artifact
+changes, and remaining risks.
 
 ## Agent roles
 

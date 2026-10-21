@@ -1,4 +1,4 @@
-.PHONY: test backend-test frontend-build lint typecheck
+.PHONY: test backend-test frontend-build lint typecheck hygiene verify
 
 test:
 	uv run --extra dev python -m pytest tests/ -q
@@ -14,3 +14,8 @@ lint:
 
 typecheck:
 	uv run --extra dev mypy src/ --strict
+
+hygiene:
+	python scripts/check_repo_hygiene.py
+
+verify: hygiene test lint typecheck frontend-build

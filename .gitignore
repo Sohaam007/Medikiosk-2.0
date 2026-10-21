@@ -36,6 +36,7 @@ medikiosk.db
 
 # ─── Agents & Logs ───────────────────────────────────────────────────────
 .agents/
+.local/
 
 # ─── Uploaded Patient Data ───────────────────────────────────────────────
 data/uploads/
@@ -75,3 +76,12 @@ eval/reports/*.html
 # ─── Build artifacts ─────────────────────────────────────────────────────
 *.tar.gz
 *.whl
+
+# ─── Local evidence and scratch material ─────────────────────────────────
+submission/raw/
+submission/work/
+*.tmp
+*.temp
+*.orig
+*.rej
+*.new.md

@@ -1,0 +1,4 @@
+# Default review owner. Add the verified GitHub handles for the other four
+# teammates before requiring path-specific ownership rules.
+# Until then, the leader is the mandatory code owner for every change.
+* @Sohaam007

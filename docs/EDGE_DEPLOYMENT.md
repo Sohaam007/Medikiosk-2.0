@@ -47,7 +47,8 @@ sudo usermod -aG audio,video kiosk
 
 ### 2.3. Deploy Launch Script & Configure Flags
 
-The repository provides the production launch script at [`scripts/launch_kiosk_linux.sh`](file:///C:/Users/Acer/Documents/Hackathon_and_Others/STARTUPX/medikiosk/scripts/launch_kiosk_linux.sh).
+The repository provides the production launch script at
+[`scripts/launch_kiosk_linux.sh`](../scripts/launch_kiosk_linux.sh).
 
 Ensure execute permissions are granted:
 ```bash
@@ -68,7 +69,8 @@ chmod +x /opt/medikiosk/scripts/launch_kiosk_linux.sh
 
 ### 2.4. Systemd Autostart Service Setup
 
-Install the systemd unit file from [`scripts/medikiosk-ui.service`](file:///C:/Users/Acer/Documents/Hackathon_and_Others/STARTUPX/medikiosk/scripts/medikiosk-ui.service):
+Install the systemd unit file from
+[`scripts/medikiosk-ui.service`](../scripts/medikiosk-ui.service):
 
 ```bash
 # 1. Copy unit file to systemd directory
