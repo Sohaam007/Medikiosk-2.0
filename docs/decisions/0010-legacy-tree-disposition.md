@@ -1,8 +1,8 @@
 # ADR 0010: Freeze and Disposition Legacy Runtime Trees
 
-> **Status:** Accepted  
-> **Date:** 2026-10-22  
-> **Author:** Soham  
+> **Status:** Accepted
+> **Date:** 2026-10-22
+> **Author:** Soham
 > **Reviewers:** Soumyadeep, Pabitra
 
 ## Context

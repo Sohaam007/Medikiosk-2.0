@@ -1,8 +1,8 @@
 # ADR 0011: Five-Person Two-Track Delivery Model
 
-> **Status:** Accepted  
-> **Date:** 2026-10-22  
-> **Author:** Soham  
+> **Status:** Accepted
+> **Date:** 2026-10-22
+> **Author:** Soham
 > **Reviewers:** Soumyadeep, Swapnil, Pabitra, Aditya
 
 ## Context

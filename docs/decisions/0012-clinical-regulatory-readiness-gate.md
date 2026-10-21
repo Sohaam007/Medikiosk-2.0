@@ -1,8 +1,8 @@
 # ADR 0012: Add Clinical and Regulatory Readiness Before Pilot
 
-> **Status:** Accepted  
-> **Date:** 2026-10-22  
-> **Author:** Soham  
+> **Status:** Accepted
+> **Date:** 2026-10-22
+> **Author:** Soham
 > **Reviewers:** Swapnil, Pabitra
 
 ## Context
