@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import fnmatch
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -86,8 +86,12 @@ MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 
 def tracked_files() -> list[str]:
-    result = subprocess.run(
-        ["git", "-C", str(ROOT), "ls-files", "-z"],
+    git = shutil.which("git")
+    if git is None:
+        raise RuntimeError("git executable is required for repository hygiene checks")
+
+    result = subprocess.run(  # noqa: S603
+        [git, "-C", str(ROOT), "ls-files", "-z"],
         check=True,
         capture_output=True,
     )
@@ -141,11 +145,7 @@ def check_forbidden_tracked_paths(files: list[str], errors: list[str]) -> None:
 
 def active_markdown_files(files: list[str]) -> list[str]:
     excluded = ("docs/archive/", "docs/tasks/")
-    return [
-        path
-        for path in files
-        if path.endswith(".md") and not path.startswith(excluded)
-    ]
+    return [path for path in files if path.endswith(".md") and not path.startswith(excluded)]
 
 
 def check_markdown_links(files: list[str], errors: list[str]) -> None:
