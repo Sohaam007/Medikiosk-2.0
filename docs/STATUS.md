@@ -1,9 +1,9 @@
 # MediKiosk 2.0 — Current Status
 
-**Last documentation refresh:** 2026-10-21
+**Last status refresh:** 2026-10-22
 
-This is the current health record. Historical wave narratives belong in Git,
-`CHANGELOG.md`, or the archived status file; they do not override this page.
+This page records the current verified state. Historical wave narratives belong
+in Git or `docs/archive/`; they do not override this page.
 
 ## Executive state
 
@@ -11,95 +11,73 @@ This is the current health record. Historical wave narratives belong in Git,
 |---|---|---|
 | Backend | Working prototype | FastAPI factory and route suite are active. |
 | Frontend | Working prototype | React/Vite kiosk and clinician views build locally. |
+| Team | Five-person delivery model | Soham leader; Soumyadeep co-lead; Swapnil ML; Pabitra QA/release; Aditya integrations/data. |
+| SEVA scope | Frozen local demo track | CardioVision → intake → clinician handoff; no live provider claims. |
 | CardioVision | Working bounded slice | Deterministic mock plus optional local XGBoost assets; not clinical validation. |
-| Intake | Working local flow | Voice/touch/UI flow and services exist; provider speech path is mocked. |
-| OCR | Provider-capable boundary | LLM-backed path needs configured credentials; do not use real patient files locally. |
-| Summary/FHIR | Local output | FHIR-shaped/minimal bundle; external validator and destination push are not proven. |
-| ABDM | Local simulation | QR/webhook/SSE behavior is in-process; production gateway is not connected. |
+| Intake | Working local flow | Voice/touch/UI flow exists; provider speech path is mocked. |
+| OCR | Provider-capable boundary | LLM-backed path needs configured credentials; no real patient files. |
+| Summary/FHIR | Local output | FHIR-shaped/minimal bundle; external validator/destination push unproven. |
+| ABDM | Local simulation | QR/webhook/SSE behavior is in-process; production gateway not connected. |
 | PM-JAY | Mock | No live NHA eligibility verification. |
-| WhatsApp | Mock | No live Meta delivery or receipt verification. |
-| Payments | Planned | No production payment gateway. |
-| Hospital matcher | Narrow local referral | Cardiovascular candidates only; no verified marketplace/capacity. |
-| Medical tourism | Planned | No treatment, travel, visa, or partner workflow. |
-| Digital health passport | Planned | Consent/export concepts need a complete module. |
-| Blender/3D | Planned | No active Blender asset pipeline in the runtime. |
-| CI/CD | Syntax corrected; GitHub run pending | Existing workflow now has corrected indentation; hosted execution is still required before treating it as a merge gate. |
-| Production readiness | Not ready | Security, provider, clinical, operational, and deployment evidence is incomplete. |
+| WhatsApp | Mock | No live Meta delivery/readback. |
+| Product-scale roadmap | Planned | Multi-disease, passport, routing, integrations, 3D, and operations are Track B. |
+| CI/CD | Syntax corrected; hosted run pending | Local checks pass; GitHub execution remains to be confirmed. |
+| Production readiness | Not ready | Clinical, regulatory, provider, operational, and deployment evidence incomplete. |
 
 ## Verified local baseline
 
-Verification run on 2026-10-21 after this documentation refresh:
+Verification run on October 22, 2026 after the five-person plan refresh:
 
 - backend tests: `290 passed`;
-- Ruff checks: passed;
+- Ruff check/format: passed;
 - strict mypy: passed;
+- frontend lint: exit 0 with existing non-blocking warnings;
 - frontend production build: passed;
-- launcher backend/frontend smoke: passed;
-- CardioVision referral smoke: passed.
+- launcher/backend/frontend smoke: passed;
+- CardioVision referral smoke: passed;
+- documentation governance audit: passed;
+- main branch baseline is pushed to `https://github.com/Sohaam007/Medikiosk-2.0`;
+- this five-person plan refresh is the documentation change associated with the
+  current commit.
 
-Frontend lint also exits 0 but reports existing non-blocking warnings in legacy large views/components. The CI workflow syntax was corrected in this refresh; GitHub execution remains the final CI verification.
+## Current blockers and evidence gaps
 
-## What is implemented
+1. Dated screenshots and a screen recording are still required for the SEVA
+   submission package.
+2. Hosted GitHub Actions execution is not yet verified in this environment.
+3. The four legacy code trees need an explicit disposition before a large
+   refactor; new active work must not enter them.
+4. CardioVision evaluation methodology exists in the plan, but no clinical
+   validation or `>90% AUC` evidence is available.
+5. Regulatory classification and intended-use review require qualified external
+   clinical/regulatory input before pilot use.
+6. Provider credentials, sandbox environments, and a pilot hospital/clinical
+   reviewer are not available in the local repository.
 
-- Clean-architecture-shaped backend under `src/medikiosk/`.
-- JWT role checks for core protected workflows.
-- Session lifecycle, intake response handling, consent and purge behavior.
-- Multilingual clinical question data and browser voice hooks.
-- Document upload validation and OCR service boundary.
-- Bilingual summary service and local FHIR-shaped persistence.
-- Clinician queue, vitals/NEWS2, resource, standing-order, and audit flows.
-- CardioVision screening and non-binding clinician-review referral endpoint.
-- ABDM-shaped local QR, webhook, care-context, and SSE demo paths.
-- Offline frontend fallbacks and IndexedDB/store-and-forward path.
-- Docker backend image and Windows development launcher.
+## Next sequence
 
-## Explicitly unverified or not live
+### SEVA Demo Track
 
-- Production ABDM gateway, ABHA identity exchange, and FHIR push.
-- Live PM-JAY/NHA eligibility.
-- Live Meta WhatsApp delivery.
-- Live Gemini/OpenAI usage with a governed PHI policy.
-- Server-side multilingual ASR and measured medical-speech WER.
-- Real OCR benchmark on a representative Indian medical-document corpus.
-- CardioVision clinical calibration, subgroup performance, and `>90% AUC` evidence.
-- Live hospital capacity, pricing, accreditation, travel, visa, or tourism data.
-- Payment provider webhooks and reconciliation.
-- Ambulance or emergency dispatch.
-- Physical kiosk touchscreen, printer, camera, and edge-lockdown validation.
-- Blender/GLB asset export and low-power 3D fallback.
-- Production Redis wiring, migration rollout, observability, and incident drills.
+1. Soham freezes claims and acceptance criteria.
+2. Soumyadeep and Aditya harden the repeatable kiosk-to-clinician flow.
+3. Swapnil produces the CardioVision evidence pack.
+4. Pabitra runs regression/release gates and captures evidence.
+5. The full team reviews the submission package and records unresolved gaps.
 
-## Current blockers
+### Product Scale Track
 
-1. The target GitHub remote still needs to be configured and the baseline pushed.
-2. Documentation formerly mixed historical completion claims with current status;
-   this refresh is correcting that drift.
-3. The CI workflow needs YAML parsing and execution verification before it is a
-   trustworthy merge gate.
-4. Legacy `server/`, `kiosk/`, `backend/`, and `core/` trees need an explicit
-   disposition before large-scale refactoring.
-5. External provider credentials and approved staging environments are absent.
-6. The frontend still contains large views and inline styling that should be
-   migrated incrementally to feature modules and a custom component system.
-
-## Next recommended sequence
-
-1. Commit and push the documentation spine.
-2. Repair/verify CI and add security gates without claiming them early.
-3. Classify legacy trees and record removals/migrations in an ADR.
-4. Establish the custom shadcn-compatible design system and landing page.
-5. Formalize CardioVision model registry, calibration, evaluation, and explainability.
-6. Add reproducible Blender/GLB asset pipeline and 3D fallback.
-7. Generalize screening and hospital/medical-tourism routing through ports.
-8. Add sandbox adapters one by one with contract tests and evidence.
-9. Add digital passport, follow-up, observability, and deployment operations.
+1. Clinical/regulatory readiness and screening registry.
+2. Custom design system, landing page, and community screening mode.
+3. Model evaluation, multi-disease slots, and optional Blender/3D.
+4. ABDM/FHIR/PM-JAY/communications/provider routing adapters.
+5. Digital passport, follow-up, observability, and production operations.
 
 ## Delete zone / do not recreate
 
 | Item | Reason | Replacement |
 |---|---|---|
-| New active code in `server/`, `kiosk/`, `backend/`, or `core/` | Parallel/legacy runtime creates drift | `src/medikiosk/` and `frontend/` |
-| Claims that local ABDM/WhatsApp/PM-JAY mocks are live | Misrepresents external connectivity | `docs/INTEGRATIONS.md` status matrix |
-| Hand-edited `docs/openapi.json` or `frontend/src/client/` | Generated contract drift | Export/generate scripts |
-| Raw patient examples in docs/tests | PHI and privacy risk | Synthetic, redacted fixtures |
-| New large route/view monoliths | Makes features hard to isolate and review | Ports/services/features/components |
+| New active code in `server/`, `kiosk/`, `backend/`, or `core/` | Parallel runtime creates drift | `src/medikiosk/` and `frontend/` |
+| Claims that local mocks are live | Misrepresents external connectivity | `docs/INTEGRATIONS.md` and `docs/SEVA_SUBMISSION.md` |
+| Hand-edited OpenAPI/generated client | Contract drift | Export/generate scripts |
+| Raw patient examples | PHI/privacy risk | Synthetic fixtures |
+| Full product features added to the demo freeze | Destabilizes submission | Track B roadmap/task packet |

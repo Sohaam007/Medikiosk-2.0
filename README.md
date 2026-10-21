@@ -17,6 +17,11 @@ CardioVision → multilingual intake → document capture → clinician queue
 It is not a production clinical system. Several integrations are mocks or local
 simulations. Read `docs/INTEGRATIONS.md` before describing a capability as live.
 
+The project now uses a five-person delivery model: Soham (leader), Soumyadeep
+(co-lead), Swapnil (ML/AI), Pabitra (QA/release), and Aditya
+(integrations/synthetic data). The SEVA demo is intentionally frozen to a
+reliable local vertical slice; the larger product roadmap continues separately.
+
 ## Start here
 
 For a new coding session, read:
@@ -27,6 +32,8 @@ For a new coding session, read:
 4. `docs/STATUS.md`
 5. `docs/INTEGRATIONS.md`
 6. `docs/TESTS.md`
+7. `docs/TEAM_CAPACITY.md`
+8. `docs/SEVA_SUBMISSION.md`
 
 For agent workflow, read `docs/AI_ORCHESTRATION.md`. For durable decisions,
 read `docs/decisions/README.md` and the relevant ADR.
@@ -157,6 +164,10 @@ not extend them without an explicit migration task.
 - `docs/TESTS.md` — commands and test navigation.
 - `docs/REGRESSION.md` — downstream verification map.
 - `docs/ROADMAP.md` — sequenced production roadmap.
+- `docs/TEAM_CAPACITY.md` — five-person ownership and parallel execution.
+- `docs/SEVA_SUBMISSION.md` — frozen demo scope and submission claims.
+- `docs/DEMO_EVIDENCE.md` — screenshots, recording, and verification evidence.
+- `docs/CLINICAL_REGULATORY.md` — pilot-readiness and external review gates.
 - `docs/AI_ORCHESTRATION.md` — agent task and handoff protocol.
 - `docs/SECURITY.md` — implemented controls versus target controls.
 - `docs/decisions/` — ADRs.

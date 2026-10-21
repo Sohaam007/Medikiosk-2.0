@@ -1,98 +1,62 @@
-# MediKiosk 2.0 — Ownership and Agent Roles
+# MediKiosk 2.0 — Ownership and Five-Person Team Model
 
-This file defines who reviews which surface and how AI agents divide work. It
-does not replace GitHub CODEOWNERS or a task tracker; it prevents agents from
-guessing ownership.
+The active team has five people. Soham is the leader and Soumyadeep is the
+co-lead. Detailed capacity rules live in `docs/TEAM_CAPACITY.md`; individual
+profiles live in `docs/team/`.
 
-## Human ownership currently recorded in the repository
+Profiles: [Soham](team/SOHAM.md) · [Soumyadeep](team/SOUMYADEEP.md) ·
+[Swapnil](team/SWAPNIL.md) · [Pabitra](team/PABITRA.md) ·
+[Aditya](team/ADITYA.md)
 
-| Owner | Primary areas | Review responsibility |
+## Human ownership
+
+| Owner | Role | Default ownership | Final review responsibility |
+|---|---|---|---|
+| **Soham** | **Leader — Architecture, Backend, Clinical Safety** | Product scope, domain, ports, services, API architecture, ADRs, privacy, clinical claims | Contracts, safety boundaries, production claims, final merge decisions |
+| **Soumyadeep** | **Co-lead — Product Experience and Frontend** | Kiosk, clinician console, design system, accessibility, landing/demo narrative | UI/API alignment, clinical wording, browser behavior, judge-facing flow |
+| **Swapnil** | **ML/AI and CardioVision Lead** | Models, evaluation, calibration, explainability, model cards, 3D plan | Model claims, thresholds, data provenance, explainability safety |
+| **Pabitra** | **QA, Security Verification and Release Operations** | Tests, CI, clean-clone verification, security evidence, screenshots, recording, release | Evidence completeness, reproducibility, security and release gates |
+| **Aditya** | **Integrations, Synthetic Data and Workflow Reliability** | Mock/provider seams, fixtures, reset/demo data, document/referral edge cases, partner-data preparation | Integration truth, fixture safety, webhook/provider failure behavior |
+
+## Path ownership
+
+| Path | Accountable owner | Required review |
 |---|---|---|
-| Soham | backend architecture, domain, ports, services, adapters, docs, security | contracts, invariants, provider boundaries, production claims |
-| Soumyadeep | frontend, API route integration, integration tests, UX | generated client alignment, accessibility, browser behavior |
+| `src/medikiosk/domain/`, `ports/`, `services/` | Soham | Affected feature owner + Pabitra for regressions |
+| `src/medikiosk/api/` | Soham | Soumyadeep when HTTP/client behavior changes |
+| `src/medikiosk/adapters/` | Aditya for provider seams; Soham for architecture | Pabitra security/reliability review |
+| `frontend/` | Soumyadeep | Soham for contract/clinical changes; Pabitra for a11y/release |
+| `models/`, `eval/` | Swapnil | Soham safety review; Pabitra reproducibility review |
+| `tests/`, `.github/`, evidence | Pabitra | Affected owner and Soham |
+| Synthetic fixtures and demo reset | Aditya | Pabitra and Soumyadeep |
+| `docs/`, ADRs, roadmap, status | Soham | All affected owners review their sections |
 
-If a change crosses both areas, one person writes and the other reviews. Do not
-create two independent implementations of the same file or contract.
+## Team operating rules
 
-## Active path ownership
+- One accountable writer per task packet; one named reviewer.
+- Soham and Soumyadeep jointly approve API/UI scope changes.
+- A contract change is sequential: Soham approves the contract before parallel
+  frontend, ML, integration, or test work consumes it.
+- Mock behavior must exist before sandbox/provider work.
+- Pabitra may block a release for missing evidence or unsafe claims.
+- The team must add a clinical advisor, regulatory reviewer, and pilot-site owner
+  before any real-patient pilot; the five-person engineering team cannot self-
+  certify those decisions.
 
-| Path | Default owner | Required reviewer |
+## AI agent mapping
+
+AI agents work under the human owner; they do not replace accountability:
+
+| Agent lane | Human owner | Safe scope |
 |---|---|---|
-| `src/medikiosk/domain/` | Backend/domain | Backend architecture reviewer |
-| `src/medikiosk/ports/` | Backend architecture | Affected integration owner |
-| `src/medikiosk/services/` | Backend/application | Backend architecture reviewer |
-| `src/medikiosk/adapters/` | Backend/integration | Security and affected provider reviewer |
-| `src/medikiosk/api/` | Backend/API | Frontend/integration reviewer when contract changes |
-| `frontend/` | Frontend | Backend/API reviewer when SDK/API changes |
-| `tests/` | Feature owner | Independent QA/reviewer |
-| `models/`, `eval/` | ML/model owner | Clinical-safety and data reviewer |
-| `blender/` and 3D frontend | 3D/UI owner | Frontend performance/accessibility reviewer |
-| `docs/` | Architecture owner | Affected domain owner |
-| `.github/`, Docker, deployment | Release/security owner | Backend architecture reviewer |
-
-## Role-based agents
-
-### Architect
-
-Owns boundaries, ADRs, contracts, dependency direction, migration sequencing,
-and the regression map. Must return an impact map before implementation.
-
-### Backend agent
-
-Owns pure domain rules, ports, services, adapters, routes, persistence, and
-backend tests. Must keep routes thin and must never place provider code in the
-domain.
-
-### Frontend agent
-
-Owns React features, custom shadcn-compatible primitives, theme tokens,
-generated client usage, responsive behavior, kiosk touch targets, and a11y.
-Must not manually duplicate backend contracts.
-
-### ML agent
-
-Owns model registry, preprocessing, calibration, evaluation, model cards,
-thresholds, explainability payloads, and rollback metadata. Must not claim
-clinical performance without a reproducible report.
-
-### Blender/3D agent
-
-Owns `.blend` scenes, materials, export scripts, GLB manifests, asset validation,
-and frontend 3D fallback behavior. Must not use real patient likenesses or block
-the primary UI on GPU capability.
-
-### Integrations agent
-
-Owns ABDM, FHIR/EHR, PM-JAY, WhatsApp/SMS, payments, pharmacy, travel, and
-hospital-provider adapters. Each integration starts as a mock and has timeout,
-retry, idempotency, signature, audit, and rollback rules.
-
-### Security/privacy agent
-
-Owns PHI review, auth/role checks, secret handling, upload validation, external
-egress review, threat-model updates, and security gates.
-
-### QA agent
-
-Owns regression, contract, invariant, E2E, accessibility, visual, offline, and
-clean-clone checks. The QA agent reports actual commands and exit codes.
-
-### Release/operations agent
-
-Owns versioning, CI, Docker, migrations, deployment, observability, backups,
-runbooks, rollback, and release evidence.
-
-## Assignment rules
-
-- One task packet has one accountable owner.
-- A task may have multiple reviewers but not multiple uncoordinated writers.
-- A cross-domain contract change needs an ADR and both domain owners' review.
-- A new provider needs integration and security review before sandbox use.
-- A model change needs ML and clinical-safety review before production claims.
-- A UI change affecting clinical wording needs product/clinical review.
+| Architect/backend | Soham | contracts, services, routes, ADRs, invariants |
+| Product/frontend | Soumyadeep | components, views, styles, generated client, a11y |
+| ML/model | Swapnil | evaluation, manifests, model cards, explainability fixtures |
+| Integration/data | Aditya | mock adapters, fixtures, provider boundary tests |
+| QA/release/security | Pabitra | regression, CI, smoke, evidence, security verification |
 
 ## Escalation
 
-If a decision is blocked for more than one working session, write the proposed
-options and risks in an ADR or task note. Do not silently choose a provider,
-clinical threshold, data-retention rule, or production deployment target.
+Blocked decisions about clinical thresholds, regulatory classification, provider
+contracts, consent, PHI retention, or deployment authority must be recorded in an
+ADR or readiness document; agents must not guess.

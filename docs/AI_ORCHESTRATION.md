@@ -23,6 +23,42 @@ docs/TESTS.md
 Then read only the task-specific files and relevant ADRs. Do not load the whole
 repository or every historical task file by default.
 
+## Human accountability model
+
+AI agents operate under five named human owners; they do not replace ownership:
+
+| Human owner | Agent lanes | Final accountability |
+|---|---|---|
+| **Soham — leader** | architect/backend/clinical-safety | contracts, architecture, safety, final claims |
+| **Soumyadeep — co-lead** | product/frontend/accessibility/demo | user experience, API/UI alignment, demo narrative |
+| **Swapnil** | ML/model/3D | evaluation, calibration, explainability, model claims |
+| **Pabitra** | QA/security/release | reproducibility, regression, CI, evidence, release gates |
+| **Aditya** | integrations/data/workflow | mocks, fixtures, provider seams, integration truth |
+
+Use `docs/TEAM_CAPACITY.md` for the current workstream matrix and
+`docs/team/` for the detailed role charter. One human owner must be named in
+every task packet even when several AI agents contribute.
+
+## Two operating modes
+
+### SEVA demo mode
+
+Optimize for one reliable, repeatable local path:
+
+```text
+CardioVision → intake → clinician handoff → evidence package
+```
+
+Do not add live providers, broad model families, booking, payment, travel, or
+large architectural migrations during the demo freeze unless Soham explicitly
+opens a scope exception and Pabitra adds a regression gate.
+
+### Product scale mode
+
+After the demo freeze, work may proceed in parallel across frontend, model,
+integration, and operations lanes. New capabilities still require a mock-first
+contract, an owner, a reviewer, and a promotion gate.
+
 ## Task packet
 
 No agent should receive an unbounded request such as “improve the app.” Use this
@@ -168,6 +204,19 @@ Roles are boundaries, not separate codebases:
 | Security | PHI, secrets, auth, trust boundaries | risk findings and required gates |
 | QA | regression, contract, E2E, accessibility, offline tests | command output and gap list |
 | Release | version, build, deployment, rollback | release evidence and unresolved risks |
+
+## Named workstream routing
+
+| Request type | Route first to | Required second review |
+|---|---|---|
+| Contract, API, clinical rule, ADR | Soham | Affected owner + Pabitra |
+| UI, design system, landing, kiosk | Soumyadeep | Soham for clinical/API changes |
+| CardioVision, model, evaluation, explainability | Swapnil | Soham + Pabitra |
+| Provider adapter, mock, fixture, webhook | Aditya | Soham + Pabitra |
+| Test, CI, security evidence, release/demo | Pabitra | Affected owner + Soham |
+
+Do not dispatch the same file to two writers. If a task crosses lanes, split it
+at the contract or artifact boundary and make the dependency explicit.
 
 ## Handoff format
 

@@ -19,3 +19,6 @@ does not remove an item that requires an external environment or physical asset.
 | Hardware | Browser simulation only | Touchscreen, webcam, microphone, printer, kiosk lockdown, and power-loss tests. |
 | Blender/3D | No active asset pipeline | Clean export, manifest, performance, accessibility, and fallback evidence. |
 | Production ops | Local Docker/launcher only | Managed secrets, migrations, monitoring, backup/restore, security scans, rollback drill. |
+| SEVA evidence | No final screenshots/recording committed | Dated synthetic demo screenshots, recording, clean-clone log, and claim review. |
+| Clinical/regulatory readiness | No classification or external clinical review | Intended-use statement, qualified regulatory/privacy review, clinical workflow sign-off, pilot governance. |
+| Five-person workflow | Ownership model newly introduced | Each task has one named owner/reviewer and the demo/product tracks remain separated. |

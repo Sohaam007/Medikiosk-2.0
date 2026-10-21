@@ -27,6 +27,14 @@ unavailable.
 
 ## Capability requirements
 
+### Delivery tracks
+
+- The SEVA Demo Track remains a reliable local vertical slice using synthetic
+  data and mock/local adapters.
+- The Product Scale Track may add providers, models, passports, follow-up,
+  community campaigns, routing, and operations only through the promotion gates
+  in `docs/ROADMAP.md` and `docs/INTEGRATIONS.md`.
+
 ### Screening
 
 - Cardiovascular, cognitive, metabolic, respiratory, and multi-disease model
@@ -35,6 +43,15 @@ unavailable.
 - Explainable factors and missing-input warnings.
 - No diagnosis language or autonomous treatment decision.
 - Critical veto path independent from commercial matching.
+
+### Community screening
+
+- Support batch/campaign mode for community health workers and PHC-style
+  outreach without requiring continuous connectivity.
+- Store-and-forward records must be consented, resumable, deduplicated, and
+  purgeable.
+- Aggregate dashboards must use de-identified operational data and must not
+  expose individual patient records.
 
 ### Intake
 
@@ -57,6 +74,15 @@ unavailable.
   insurance, travel constraints, verified availability, and follow-up ability.
 - Recommendation explanation and freshness timestamps.
 - Human confirmation before booking, payment, or travel action.
+
+### Care navigation and continuity
+
+- Track referral status without claiming treatment outcome.
+- Provide a care navigator workspace for missing documents, language needs,
+  budget constraints, and next human action.
+- Provide consented caregiver access with expiry, revoke, and audit behavior.
+- Provide clinician-approved education and follow-up content with delivery,
+  retry, opt-out, and escalation state.
 
 ### Engagement and follow-up
 
@@ -82,6 +108,7 @@ unavailable.
 - Auditability for consent, external sharing, clinical overrides, and purge.
 - Model evaluation with AUC, calibration, subgroup, and safety-threshold evidence.
 - Accessibility suitable for large-touch kiosk interaction.
+- Clinical/regulatory readiness evidence before real-patient pilot use.
 
 ## Explicit non-goals without separate approval
 

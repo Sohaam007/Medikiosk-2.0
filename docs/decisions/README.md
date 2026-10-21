@@ -34,6 +34,9 @@ Routine implementation details belong in code, tests, or the task/PR record.
 | [0007](0007-add-phase3-domain-contracts.md) | Phase 3 domain contracts | Accepted |
 | [0008](0008-cardiovision-boundary.md) | CardioVision screening port boundary | Accepted |
 | [0009](0009-cardiovision-referral-policy.md) | Non-binding CardioVision referral policy | Accepted |
+| [0010](0010-legacy-tree-disposition.md) | Freeze and disposition legacy runtime trees | Accepted |
+| [0011](0011-five-person-two-track-delivery.md) | Five-person two-track delivery model | Accepted |
+| [0012](0012-clinical-regulatory-readiness-gate.md) | Clinical and regulatory readiness gate | Accepted |
 
 ## Current decision rule
 

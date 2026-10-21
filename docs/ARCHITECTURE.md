@@ -7,6 +7,12 @@ runtime that exists now and the boundaries future features must use.
 
 There is one active backend runtime and one active frontend runtime.
 
+Delivery architecture is intentionally split from runtime architecture: the
+SEVA Demo Track freezes the current local vertical slice, while the Product Scale
+Track adds new bounded capabilities through ports, adapters, generated
+contracts, and regression gates. See `docs/ROADMAP.md` and
+`docs/TEAM_CAPACITY.md`.
+
 ```text
 Browser / kiosk
       │

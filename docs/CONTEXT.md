@@ -62,6 +62,22 @@ The system is a clinical workflow and interoperability layer. It is not an
 autonomous diagnostician, not an emergency dispatcher without verified
 infrastructure, and not a replacement for a hospital EHR.
 
+Delivery is split into two tracks:
+
+- **SEVA Demo Track:** a stable local CardioVision-to-clinician vertical slice
+  using synthetic data and visible mock/offline boundaries.
+- **Product Scale Track:** community screening campaigns, multi-disease model
+  slots, care navigation, digital passport, follow-up, provider integrations,
+  optional 3D education, and production operations.
+
+The five-person ownership model is defined in `docs/TEAM_CAPACITY.md`; the demo
+track is frozen before product-scale work changes its contracts or behavior.
+
+Practical expansions include batch/community screening, a care navigator
+workspace, referral outcome tracking, consented caregiver access, medication-
+safety review, a multilingual education library, and a zero-PHI operations
+health console.
+
 ## Product surfaces
 
 | Surface | Primary user | Current state |

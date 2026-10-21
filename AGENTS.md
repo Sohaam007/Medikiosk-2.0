@@ -13,7 +13,9 @@ Read only this sequence first; it is designed to preserve context:
 3. `docs/STATUS.md` — verified current state, blockers, and limitations.
 4. `docs/INTEGRATIONS.md` — live, mock, local, and unimplemented integrations.
 5. `docs/TESTS.md` — exact commands and focused verification.
-6. Task-specific ADRs in `docs/decisions/`.
+6. `docs/TEAM_CAPACITY.md` — five-person ownership and parallel workstreams.
+7. `docs/SEVA_SUBMISSION.md` — frozen demo scope and claim boundaries.
+8. Task-specific ADRs in `docs/decisions/`.
 
 Do not read the entire historical `docs/tasks/` directory to choose work. It
 contains older planning material and is not a reliable current backlog.
@@ -36,6 +38,10 @@ Screen → Intake → Explain → Route → Travel → Heal → Follow-up
 The current repository is not a production clinical system. ABDM, PM-JAY,
 WhatsApp, hospital/EHR, payment, ambulance, medical-tourism, and live-capacity
 connections are not proven live integrations. See `docs/INTEGRATIONS.md`.
+
+The five-person delivery model is: Soham (leader), Soumyadeep (co-lead), Swapnil
+(ML/AI), Pabitra (QA/release), and Aditya (integrations/synthetic data). See
+`docs/team/` for role-specific instructions.
 
 ## Active runtime and source of truth
 
@@ -168,8 +174,12 @@ Use one branch and one logical commit per capability. Follow
   session.
 - `docs/ARCHITECTURE.md` is the current map, not a historical narrative.
 - `docs/STATUS.md` is the current health/blocker record.
+- `docs/TEAM_CAPACITY.md` owns team lanes and delivery capacity.
+- `docs/SEVA_SUBMISSION.md` owns the frozen competition/demo scope.
 - `docs/INTEGRATIONS.md` owns live-vs-mock integration truth.
 - `docs/TESTS.md` owns executable verification guidance.
+- `docs/DEMO_EVIDENCE.md` owns screenshots, recording, and submission evidence.
+- `docs/CLINICAL_REGULATORY.md` owns pilot-readiness and regulatory discovery.
 - `docs/decisions/` owns durable architectural decisions.
 - Update the canonical owner when its fact changes; do not duplicate changing
   facts into several documents.

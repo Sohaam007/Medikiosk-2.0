@@ -1,165 +1,161 @@
-# MediKiosk 2.0 — Professional Delivery Roadmap
+# MediKiosk 2.0 — Two-Track Delivery Roadmap
 
-This roadmap turns the product vision into bounded, verifiable phases. Each
-phase has a goal, files, dependencies, and a gate. Do not mark a phase complete
-from UI appearance alone; use the evidence described in the gate.
+This roadmap separates what the five-person team can make reliable for the SEVA
+2026 submission from the larger product that can be built after the demo freeze.
+The team may expand the product roadmap, but it must not destabilize the frozen
+demo path.
 
-## Product north star
+## North-star journey
 
 ```text
 Screen → Intake → Explain → Route → Travel → Heal → Follow-up
 ```
 
-## Phase 0 — Repository and documentation foundation
+## Track A — SEVA Demo Release
 
-**Goal:** make the project safe for humans and agents to extend.
+**Goal:** deliver a reliable, evidence-backed local vertical slice rather than a
+wide set of unverified integrations.
 
-**Files/surfaces:** `AGENTS.md`, `README.md`, `docs/CONTEXT.md`,
-`docs/ARCHITECTURE.md`, `docs/STATUS.md`, `docs/INTEGRATIONS.md`,
-`docs/TESTS.md`, `docs/REGRESSION.md`, `.governance/docs-map.json`, CI files.
+### Frozen demo journey
 
-**Work:** push the clean baseline, establish `main`, repair CI syntax, add
-CODEOWNERS/PR templates, classify legacy trees, and remove stale production
-claims from current docs.
+```text
+Language/informant selection
+→ CardioVision screen
+→ explanation + screening disclaimer
+→ non-binding local cardiology candidates
+→ multilingual voice/touch/document intake
+→ clinician queue/review
+→ local summary/FHIR-shaped handoff
+→ reset/offline/auth-failure demonstration
+```
 
-**Gate:** clean clone setup, local test/build checks, docs-link audit, no secrets
-or local patient data tracked, and CI workflow parsed successfully.
+### Demo workstreams
 
-## Phase 1 — Architecture bootstrap and modularization
+| Workstream | Owner | Gate |
+|---|---|---|
+| Scope, contracts, safety, final claims | Soham | No unsupported provider/model/clinical claim remains |
+| Kiosk, clinician console, landing/demo polish | Soumyadeep | Accessible, responsive, resettable, no fake success |
+| CardioVision model/evidence pack | Swapnil | Manifest, model card, deterministic evaluation methodology |
+| Synthetic fixtures/mock boundaries/reset | Aditya | No PHI, stable demo case, failure paths visible |
+| QA, CI, screenshots, screen recording, clean clone | Pabitra | Full checks and dated evidence package pass |
 
-**Goal:** create stable seams for future capabilities without breaking the
-working prototype.
+### Track A acceptance gate
 
-**Files:** `src/medikiosk/domain/`, `ports/`, `services/`,
-`api/dependencies/container.py`, future `application/` and `bootstrap/`, ADRs,
-contract/invariant tests.
+- `make test` passes.
+- Ruff check/format and strict mypy pass.
+- Frontend lint/build pass.
+- Launcher/backend/frontend smoke passes.
+- CardioVision mock/local mode is visibly labeled and non-diagnostic.
+- Referral candidates remain non-binding; no booking/payment/capacity claim.
+- Synthetic reset case works repeatedly.
+- Offline/auth failure does not look like external success.
+- Screen recording, screenshots, and one-page judge summary exist.
+- `docs/INTEGRATIONS.md`, `docs/STATUS.md`, and `docs/DEMO_EVIDENCE.md` agree.
 
-**Work:** introduce use-case command/query boundaries where useful, reduce large
-route/view responsibilities, preserve existing contracts, and make every new
-external capability port-first.
+### Deferred from Track A
 
-**Gate:** import/purity invariants, full backend suite, generated OpenAPI/client
-sync, frontend build, and no behavior regression in the live stack test.
+- Live ABDM/ABHA, PM-JAY, WhatsApp, payments, hospital/EHR, ambulance, travel,
+  and medical-tourism providers.
+- Cognitive, metabolic, respiratory, and multi-disease models.
+- Full digital health passport and automated follow-up.
+- Blender/GLB/Three.js as a release blocker; a static 2D explanation is allowed.
+- Live hospital capacity, booking, visa, treatment, or travel guarantees.
+- Physical kiosk hardware validation.
+- Production Redis, migrations, observability, backup, and incident operations.
 
-## Phase 2 — Design system and landing experience
+## Track B — Product Scale Roadmap
 
-**Goal:** replace scattered styling with a custom shadcn-compatible MediKiosk
-theme and a credible product landing page.
+### Phase B1 — Clinical and platform readiness
 
-**Files:** `frontend/components.json`, `frontend/src/components/ui/`,
-`frontend/src/styles/tokens.css`, `theme.css`, `globals.css`, layout shell,
-landing page, accessibility/visual tests.
+**Owner:** Soham; **support:** Swapnil, Pabitra
 
-**Work:** build tokenized medical navy/clinical blue/cardio red/emerald/saffron
-theme, reusable components, responsive states, kiosk touch sizing, dark clinician
-mode, reduced motion, and the Screen → Follow-up narrative.
+- Screening registry and model lifecycle contracts.
+- Clinical/regulatory intended-use assessment.
+- Care-plan and follow-up domain boundaries.
+- Migration-controlled persistence and production configuration.
+- Explicit external clinical advisor and pilot-site approval gates.
 
-**Gate:** no arbitrary repeated color tokens in new UI, lint/build pass, keyboard
-and screen-reader review, touch-target audit, and documented screenshots.
+**Gate:** approved intended-use statement, model lifecycle, safety policy, and
+pilot-readiness checklist.
 
-## Phase 3 — CardioVision platform and model governance
+### Phase B2 — Custom product experience
 
-**Goal:** make cardiovascular screening a reproducible, calibrated, explainable
-model capability rather than a single adapter.
+**Owner:** Soumyadeep; **support:** Pabitra, Swapnil
 
-**Files:** `domain/screening/`, model contracts, model registry port/adapter,
-`models/cardiovision/model-card.md`, manifest, `eval/`, screening tests,
-CardioVision UI.
+- Custom shadcn-compatible design system.
+- Landing page explaining the full journey and honest current scope.
+- Feature-based frontend decomposition.
+- Digital health passport UI.
+- Community screening campaign UI.
+- Accessibility, low-power, reduced-motion, and offline-first experience.
 
-**Work:** add model version metadata, feature schema, missing-data policy,
-calibration metadata, threshold policy, subgroup metrics, uncertainty display,
-clinician-review gates, and explicit non-diagnostic language.
+**Gate:** component tokens, keyboard/touch/a11y checks, visual evidence, and no
+regression in the kiosk/clinician demo.
 
-**Gate:** reproducible evaluation report with ROC-AUC/PR-AUC/calibration/subgroup
-metrics, deterministic regression set, model card, and safe UI/API behavior.
+### Phase B3 — Intelligence and 3D explanation
 
-## Phase 4 — Blender and 3D explainability pipeline
+**Owner:** Swapnil; **support:** Soumyadeep, Soham
 
-**Goal:** provide an optional, performant 3D explanation layer for CardioVision
-and future patient education.
+- Calibrated CardioVision registry.
+- Cognitive, diabetes/metabolic, respiratory, and multi-disease model slots.
+- Blender heart/education assets with GLB export manifest.
+- Model-aware explanation overlays and 2D/static fallback.
+- Community screening aggregation using de-identified data.
 
-**Files:** `blender/`, `.blend` scenes, export scripts, GLB manifests,
-`frontend/src/components/three/`, capability/fallback components,
-`docs/BLENDER_PIPELINE.md`.
+**Gate:** reproducible evaluation, calibration/subgroup evidence, model cards,
+asset validation, performance budget, and clinician safety review.
 
-**Work:** create synthetic heart and patient assets, export reproducibly to GLB,
-lazy-load in the frontend, map explainability factors to visual overlays, and
-provide static/2D fallback for low-power devices and reduced motion.
+### Phase B4 — Health-network and provider integrations
 
-**Gate:** clean-machine export, asset manifest validation, bundle-size/performance
-budget, no patient likeness, keyboard/text fallback, and frontend smoke test.
+**Owner:** Aditya; **support:** Soham, Pabitra
 
-## Phase 5 — Multi-disease screening registry
+- ABDM/ABHA sandbox adapter.
+- Destination-specific FHIR/EHR adapters.
+- PM-JAY/insurance sandbox.
+- WhatsApp/SMS/email communications with opt-in and delivery receipts.
+- Hospital/facility catalog with freshness timestamps.
+- Transparent hospital/specialist/medical-tourism routing.
+- Medication interaction and pharmacy safety provider seam.
 
-**Goal:** add cognitive, metabolic, respiratory, and multi-disease screening
-without duplicating CardioVision-specific plumbing.
+**Gate:** mock → sandbox → verified-live promotion with auth/signatures,
+consent, timeout/retry/idempotency, audit, readback, monitoring, and rollback.
 
-**Files:** `domain/screening/registry.py`, model contracts, per-domain modules,
-evaluation reports, model cards, registry adapter, API/UI selectors.
+### Phase B5 — Quality, operations, and deployment
 
-**Work:** standardize `ScreeningModelPort`, model lifecycle, versioning,
-calibration, missing-input handling, veto thresholds, and clinician review.
+**Owner:** Pabitra; **support:** all owners
 
-**Gate:** each model has contract/unit/evaluation coverage and the orchestrator
-can run with one model, several models, or no model offline.
+- CI security gates, secret/dependency/container scans.
+- PostgreSQL migrations, Redis adapter, observability, backups, restore tests.
+- Provider health/readiness and incident runbooks.
+- Kiosk hardware/edge lockdown and fleet telemetry.
+- Performance, accessibility, security, and disaster-recovery evidence.
 
-## Phase 6 — Specialist, hospital, and medical-tourism routing
+**Gate:** clean Linux build, container smoke, restore/rollback drills, external
+security review, and named operational owner.
 
-**Goal:** route patients to appropriate reviewed options using condition, budget,
-location, language, insurance, travel, and verified availability constraints.
+## Practical feature expansion backlog
 
-**Files:** routing/tourism/travel domain contracts, ports, local fixtures,
-provider adapters, API schemas/routes, matching UI, audit tests.
+These features increase product value without requiring unsafe automation:
 
-**Work:** implement transparent weighted ranking and constraint explanations.
-Critical patients bypass commercial routing. No booking, payment, visa, or
-capacity guarantee occurs without an explicit provider and confirmation flow.
-
-**Gate:** deterministic ranking fixtures, safety-veto tests, provider freshness
-rules, explainable recommendation output, and no automatic consequential action.
-
-## Phase 7 — Integration promotion ladder
-
-**Goal:** replace mocks with governed sandbox and production adapters one at a
-time.
-
-**Order:** ABDM/ABHA → FHIR/EHR → PM-JAY/insurance → WhatsApp/SMS → payments →
-pharmacy/interactions → travel/partner systems.
-
-**Files:** `ports/`, `adapters/`, integration tests, provider runbooks,
-`docs/INTEGRATIONS.md`, secret/config management, health checks.
-
-**Gate:** mock contract tests, sandbox evidence, auth/signature verification,
-timeouts/retries/idempotency, PHI egress review, delivery/readback proof, and
-rollback procedure.
-
-## Phase 8 — Digital health passport and follow-up
-
-**Goal:** make the interaction longitudinal and consent-controlled.
-
-**Files:** passport/followup domain modules, contracts, ports, local adapter,
-expiry/revocation logic, patient pages, consent/share UI, scheduled delivery.
-
-**Gate:** consent, expiry, revoke, audit, export, delivery failure, and purge
-tests; no permanent unauthenticated PHI URLs.
-
-## Phase 9 — Production operations and physical deployment
-
-**Goal:** make the platform operable, observable, secure, and deployable.
-
-**Files:** `.github/workflows/`, Docker/Compose, migrations, observability,
-runbooks, deployment scripts, edge kiosk scripts, security tests.
-
-**Work:** managed secrets, PostgreSQL migrations, Redis adapter, metrics/traces,
-rate limiting, backup/restore, disaster recovery, kiosk hardening, fleet
-telemetry, provider monitoring, vulnerability scanning, and incident drills.
-
-**Gate:** clean Linux build, container smoke, restore test, security scan,
-provider failure drill, rollback drill, and clinical governance sign-off.
+1. **Community Screening Campaign Mode** — batch sessions, offline sync, de-
+   identified aggregate dashboards, referral follow-up queue.
+2. **Care Navigator Workspace** — coordinator view of referral status, missing
+   documents, language needs, budget constraints, and next human action.
+3. **Referral Outcome Tracking** — record whether a candidate was reviewed,
+   contacted, attended, or declined without claiming clinical outcome.
+4. **Consent and Caregiver Access** — scoped, expiring caregiver access with
+   revoke/audit behavior.
+5. **Medication Safety Review** — structured medication list, interaction flags,
+   duplicate-therapy warnings, and pharmacist/clinician review.
+6. **Patient Education Library** — multilingual, clinician-approved explainers
+   for risk factors, preparation, medicines, and follow-up.
+7. **Operations Health Console** — kiosk connectivity, camera/mic/printer health,
+   queue latency, provider status, and zero-PHI telemetry.
+8. **Evidence Dashboard** — model version, test status, integration status,
+   release evidence, and known limitations for internal operators.
 
 ## Work selection rule
 
-Choose the smallest incomplete phase deliverable that unlocks the next user
-outcome. Every task must reference one phase, one bounded owner, one acceptance
-set, and one regression map row. Do not start a provider integration before its
-mock contract and failure policy exist.
+Choose the smallest incomplete deliverable that unlocks the next user outcome.
+Every task references one track, one phase, one owner, one reviewer, one
+acceptance gate, and one row in `docs/REGRESSION.md`.

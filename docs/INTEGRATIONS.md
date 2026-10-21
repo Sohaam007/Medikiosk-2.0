@@ -7,6 +7,10 @@ UI” does not mean “connected to a provider.” A real integration needs a po
 adapter, configuration, contract tests, failure behavior, audit behavior, and
 verified credentials in an approved environment.
 
+Integration ownership follows `docs/TEAM_CAPACITY.md`: Aditya owns provider
+seams and synthetic fixtures, Soham owns architecture/consent/PHI boundaries,
+and Pabitra owns contract/failure/release evidence.
+
 ## Status vocabulary
 
 - **Local:** implemented inside this repository; no provider call.
