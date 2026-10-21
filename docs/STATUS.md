@@ -21,7 +21,7 @@ in Git or `docs/archive/`; they do not override this page.
 | PM-JAY | Mock | No live NHA eligibility verification. |
 | WhatsApp | Mock | No live Meta delivery/readback. |
 | Product-scale roadmap | Planned | Multi-disease, passport, routing, integrations, 3D, and operations are Track B. |
-| CI/CD | Syntax corrected; hosted run pending | Local checks pass; GitHub execution remains to be confirmed. |
+| CI/CD | Hosted PR checks passing | Backend, frontend, repository hygiene, and quality-gate checks passed on PR #1; `main` is protected. |
 | Production readiness | Not ready | Clinical, regulatory, provider, operational, and deployment evidence incomplete. |
 
 ## Verified local baseline
@@ -35,16 +35,17 @@ Verification run on October 22, 2026 after the five-person plan refresh:
 - frontend production build: passed;
 - launcher/backend/frontend smoke: passed;
 - CardioVision referral smoke: passed;
+- repository hygiene: passed;
+- hosted PR #1 CI: backend, frontend, hygiene, and quality gate passed;
 - documentation governance audit: passed;
 - main branch baseline is pushed to `https://github.com/Sohaam007/Medikiosk-2.0`;
-- this five-person plan refresh is the documentation change associated with the
-  current commit.
+- governance changes are on PR #1 and are not merged into `main` yet.
 
 ## Current blockers and evidence gaps
 
 1. Dated screenshots and a screen recording are still required for the SEVA
    submission package.
-2. Hosted GitHub Actions execution is not yet verified in this environment.
+2. PR #1 still requires human code-owner review and merge; agents must not merge it.
 3. The four legacy code trees need an explicit disposition before a large
    refactor; new active work must not enter them.
 4. CardioVision evaluation methodology exists in the plan, but no clinical
