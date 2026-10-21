@@ -1,0 +1,13 @@
+{
+  "constitution": "AGENTS.md",
+  "context": "docs/CONTEXT.md",
+  "map": "docs/ARCHITECTURE.md",
+  "status": "docs/STATUS.md",
+  "agents": "AGENTS.md",
+  "contract": "docs/CONTRACTS.md",
+  "tests": "docs/TESTS.md",
+  "regression": "docs/REGRESSION.md",
+  "history": "CHANGELOG.md",
+  "adr_dir": "docs/decisions",
+  "adr_index": "docs/decisions/README.md"
+}

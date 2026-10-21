@@ -5,14 +5,14 @@ on:
     branches:
       - master
       - main
-      - 'feat/*'
-      - 'feat/**'
+      - "feat/*"
+      - "feat/**"
   pull_request:
     branches:
       - master
       - main
-      - 'feat/*'
-      - 'feat/**'
+      - "feat/*"
+      - "feat/**"
 
 permissions:
   contents: read
@@ -42,7 +42,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
         with:
-           version: "0.12.19"
+          version: "0.12.19"
           enable-cache: true
 
       - name: Install dependencies
@@ -64,17 +64,17 @@ jobs:
         run: uv run pytest tests/ -v
 
   frontend:
-     name: Frontend (Node 24.19.0, Vite, TypeScript)
+    name: Frontend (Node 24.19.0, Vite, TypeScript)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 24.19.0
         uses: actions/setup-node@v4
         with:
-           node-version: "24.19.0"
+          node-version: "24.19.0"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 

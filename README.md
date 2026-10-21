@@ -1,80 +1,78 @@
-# MediKiosk 2.0 — SEVA 2026 working model
+# MediKiosk 2.0
 
-MediKiosk 2.0 is a reproducible, offline-ready health kiosk vertical slice for
-the SEVA 2026 proposal. It combines the canonical MediKiosk clinical-intake
-workflow with a bounded CardioVision cardiovascular screening engine:
+MediKiosk 2.0 is an extensible, privacy-aware health-journey platform for
+Indian healthcare settings. Its product direction is:
 
-**Screen → Intake → Explain → Route → Follow up**
+```text
+Screen → Intake → Explain → Route → Travel → Heal → Follow-up
+```
 
-The current demo lets a patient or community health worker:
+The current repository is a reproducible working prototype centered on:
 
-1. open the Vite kiosk UI and choose a language;
-2. run an explainable CardioVision heart-risk screen before clinical intake;
-3. receive deterministic, non-binding cardiology candidate IDs for clinician
-   review without selecting a doctor or purchasing a package;
-4. continue through voice/touch intake, document capture, FHIR summary and
-   the existing clinician queue; and
-5. use the offline preview when the backend is unavailable.
+```text
+CardioVision → multilingual intake → document capture → clinician queue
+→ local summary/FHIR-shaped output → clinician-reviewed referral candidates
+```
 
-The cardiovascular result is screening support only. It is not a diagnosis and
-requires clinician review.
+It is not a production clinical system. Several integrations are mocks or local
+simulations. Read `docs/INTEGRATIONS.md` before describing a capability as live.
 
-## Stack
+## Start here
 
-- Python 3.11.9, FastAPI, Pydantic v2, SQLAlchemy, SQLite/PostgreSQL
-- Vite, React 19, TypeScript, Tailwind CSS
-- CardioVision model assets under `models/cardiovision/`
-- FHIR R4/ABDM-oriented clinical contracts and an append-only audit trail
-- `uv.lock` and `frontend/package-lock.json` for reproducible dependencies
+For a new coding session, read:
+
+1. `AGENTS.md`
+2. `docs/CONTEXT.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/STATUS.md`
+5. `docs/INTEGRATIONS.md`
+6. `docs/TESTS.md`
+
+For agent workflow, read `docs/AI_ORCHESTRATION.md`. For durable decisions,
+read `docs/decisions/README.md` and the relevant ADR.
+
+## Current stack
+
+- Python `3.11.9`, FastAPI, Pydantic v2, SQLAlchemy, SQLite/PostgreSQL.
+- `uv` with `uv.lock` for Python dependencies.
+- Node `24.19.0`, React, TypeScript, Vite, Tailwind, and `package-lock.json`.
+- Deterministic CardioVision mock mode and optional local XGBoost mode.
+- Generated FastAPI OpenAPI contract and Hey-API TypeScript client.
+- Docker runtime for the backend and Windows one-click local launcher.
 
 ## Setup
 
-Prerequisites: Python 3.11.9, `uv`, Node 24.19.0 and npm.
+Prerequisites: Python `3.11.9`, `uv`, Node `24.19.0`, npm, and optionally
+Docker.
 
 ```bash
-uv sync --extra dev
-copy .env.example .env       # Windows
-# cp .env.example .env       # Linux/macOS
+uv sync --frozen --extra dev
+cp .env.example .env                 # Linux/macOS
 cd frontend && npm ci && cd ..
 ```
 
-No API key is required for the offline demo. Leave:
+On Windows use `copy .env.example .env` or run the launcher, which reuses the
+local environment and starts both processes.
 
-```text
-CARDIOVISION_MODE=mock
-```
+## Run locally
 
-To exercise the copied local XGBoost model assets explicitly, use
-`CARDIOVISION_MODE=real`. This still does not call a remote service.
+### Windows one-click launcher
 
-## Run
-
-### One-click Windows startup
-
-Double-click **`start_dev.bat`** in this folder. Keep `start_dev.ps1` next to it.
-It starts the API and Vite in separate console windows, waits for both to respond,
-then opens **http://127.0.0.1:5173**. Repeated launches reuse responding services
-on ports 8000 and 5173; close other projects using these ports first.
-
-The first launch installs locked dependencies if the local environment is absent
-(internet required). It needs Python/uv and Node/npm installed, never overwrites
-your `.env`, and never installs global packages. Existing environments are reused;
-after dependency changes run `uv sync --frozen --extra dev` and `npm ci` manually.
-For local demo authentication only, the example configuration contains a
-development-only JWT secret. The launcher also supplies that value process-scoped
-when `API_KEY` is blank; it never writes a secret to disk. Replace it before any
-non-local deployment.
-To stop the application, press **Ctrl+C in both server windows**.
-
-For a readiness check without opening a browser:
+Double-click `start_dev.bat`, or run:
 
 ```powershell
+.\start_dev.bat
 .\start_dev.bat -NoBrowser
 ```
 
-This launches the local prototype, not a production deployment. The heart panel
-still needs a configured demo JWT for backend referral requests; without one it
-shows its labelled offline preview. Do not enter real patient data.
+The launcher starts:
+
+- backend: `http://127.0.0.1:8000`;
+- frontend: `http://127.0.0.1:5173`.
+
+It reuses responding services on those ports, waits for readiness, and opens the
+frontend unless `-NoBrowser` is supplied. Stop it with `Ctrl+C` in both server
+windows.
 
 ### Manual startup
 
@@ -84,76 +82,88 @@ Backend:
 uv run uvicorn medikiosk.api.app:create_app --factory --reload --port 8000
 ```
 
-Frontend in a second terminal:
+Frontend in another terminal:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open the URL printed by Vite (normally `http://localhost:5173`). The kiosk
-screen uses an offline preview if authentication or the API is not configured;
-the API itself remains protected by the existing role-based dependency.
+Vite proxies `/api` to `http://127.0.0.1:8000`; see `frontend/vite.config.ts`.
 
-Useful API calls after configuring a valid kiosk JWT:
+## Configuration modes
 
-```bash
-curl http://localhost:8000/api/health
-curl -X POST http://localhost:8000/api/screening/cardiovascular \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MEDIKIOSK_JWT" \
-  -d '{"features":{"Age":58,"HTN":1,"Typical Chest Pain":0}}'
+The offline demo uses:
 
-curl -X POST http://localhost:8000/api/screening/cardiovascular/referral \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MEDIKIOSK_JWT" \
-  -d '{"features":{"Age":72,"HTN":1,"Typical Chest Pain":1},"preferred_language":"hi-IN"}'
+```text
+CARDIOVISION_MODE=mock
+DATABASE_URL=sqlite+aiosqlite:///./medikiosk.db
 ```
 
-## Checks
+`CARDIOVISION_MODE=real` loads the versioned local XGBoost assets. Gemini and
+OpenAI adapters only make external calls when configured with credentials; do
+not use real patient data in development.
 
-The single offline project check is:
+## Verification
 
 ```bash
 make test
-```
-
-It runs the complete Python suite, including architectural invariants and the
-CardioVision boundary tests. Individual checks:
-
-```bash
-uv run --extra dev python -m pytest tests/ -q
 uv run --extra dev ruff check src/ tests/
+uv run --extra dev ruff format --check src/ tests/
 uv run --extra dev mypy src/ --strict
-cd frontend && npm run build
+cd frontend && npm run lint && npm run build
 ```
 
-## Deployment
+Run the focused checks in `docs/TESTS.md` for the area you changed. If an API
+route or schema changes, export OpenAPI and regenerate the frontend client before
+running the final checks.
 
-Build and run the backend container:
+## Active source map
 
-```bash
-docker build -t medikiosk-2-seva .
-docker run --rm -p 8000:8000 medikiosk-2-seva
-```
+| Need | Location |
+|---|---|
+| FastAPI app factory | `src/medikiosk/api/app.py` |
+| API-to-adapter wiring | `src/medikiosk/api/dependencies/container.py` |
+| Pure business rules | `src/medikiosk/domain/` |
+| Ports/interfaces | `src/medikiosk/ports/` |
+| Orchestration | `src/medikiosk/services/` |
+| Infrastructure adapters | `src/medikiosk/adapters/` |
+| Patient UI | `frontend/src/views/KioskIntakeView.tsx` |
+| Clinician UI | `frontend/src/views/ClinicianQueueView.tsx` |
+| CardioVision UI | `frontend/src/components/CardioVisionPanel.tsx` |
+| API contract | `docs/openapi.json` |
+| API client | `frontend/src/client/` |
+| Tests | `tests/` |
+| Model assets | `models/cardiovision/` |
 
-The container uses the pinned `uv` image, the lockfile, the factory entrypoint,
-and the local SQLite default. Production deployments must provide a strong
-secret, a managed database, TLS, an approved CORS allow-list, and a clinical
-review process before enabling real patient traffic.
+`backend/`, `core/`, `server/`, and `kiosk/` are legacy/parallel surfaces. Do
+not extend them without an explicit migration task.
 
-## Project guide
+## Safety and privacy
 
-- `medikiosk_2.0_vision.md` — SEVA product vision and phased plan
-- `seva_2026_recommendation.md` — category and problem-statement rationale
-- `docs/SEVA_SUBMISSION.md` — implementation scope, demo script and submission checklist
-- `docs/decisions/0008-cardiovision-boundary.md` — screening integration decision
-- `models/cardiovision/` — copied, versioned CardioVision assets
-- `frontend/src/components/CardioVisionPanel.tsx` — visible kiosk integration
+- CardioVision is screening support, not diagnosis.
+- Do not log or commit PHI, secrets, raw audio, OCR text, or model payloads.
+- Do not claim live ABDM, PM-JAY, WhatsApp, hospital, payment, ambulance, or
+  medical-tourism integration from local mocks or UI cards.
+- Do not deploy with the development secret, wildcard CORS, SQLite, or mock
+  provider adapters.
 
-## Privacy and clinical safety
+## Documentation map
 
-Do not commit `.env`, real patient data, uploaded documents, database files,
-tokens or API keys. Do not use the demo fixtures as clinical evidence. The
-screening adapter does not log feature values, and the UI labels offline
-results as previews.
+- `docs/CONTEXT.md` — product mission and vocabulary.
+- `docs/ARCHITECTURE.md` — current architecture and file map.
+- `docs/STATUS.md` — current verified state and blockers.
+- `docs/INTEGRATIONS.md` — provider/mock boundaries.
+- `docs/TESTS.md` — commands and test navigation.
+- `docs/REGRESSION.md` — downstream verification map.
+- `docs/ROADMAP.md` — sequenced production roadmap.
+- `docs/AI_ORCHESTRATION.md` — agent task and handoff protocol.
+- `docs/SECURITY.md` — implemented controls versus target controls.
+- `docs/decisions/` — ADRs.
+
+## Deployment note
+
+The root `Dockerfile` runs the backend only. The frontend is built separately by
+the Vite workflow. Production deployment requires managed secrets, a managed
+database, approved CORS/TLS, real provider contracts, monitoring, clinical
+governance, and an external security review.

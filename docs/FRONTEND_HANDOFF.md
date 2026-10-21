@@ -1,76 +1,51 @@
-# Frontend Handoff: MediKiosk API Integration
+# Frontend Handoff — Current Runtime
 
-**To:** @soumyadeep  
-**From:** Backend Engineering Team  
-**Date:** 2026-09-27  
+The active frontend is `frontend/`, a React 19 + TypeScript + Vite application.
+It is not a Next.js application.
 
-This document outlines the API contracts and architectural expectations for the Phase 1 UI (Kiosk Patient Flow & Clinician Dashboard). 
+## Run
 
-The backend has been completely rewritten into a Clean Architecture model. All legacy mock endpoints have been retired.
-
-## 1. OpenAPI Contracts & Base Paths
-
-The strict HTTP contracts for all routes are exported as an OpenAPI 3.1 specification.
-
-*   **Contract File:** [`docs/openapi.json`](openapi.json)
-*   **Base URL (Dev):** `http://localhost:8000`
-*   **Base URL (Prod):** Configured via `.env` at build time.
-
-### Key Workflows:
-*   **Start Session:** `POST /api/intake/start` -> Returns `session_id`.
-*   **Process Input:** `POST /api/intake/respond` -> Process voice/text, returns `triage_alerts` and `next_question`.
-*   **Walk-away Purge:** `POST /api/session/purge` -> Triggers DPDP hard-delete of patient data.
-
-## 2. Authentication (JWT RBAC)
-
-All endpoints (except `/api/health`) require a valid JSON Web Token (JWT). The API expects the token in the standard HTTP Authorization header.
-
-**Header Schema:**
-```http
-Authorization: Bearer <token>
+```bash
+cd frontend
+npm ci
+npm run dev
 ```
 
-**Role Definitions (`role` claim):**
-The backend strictly enforces these three roles:
-1.  **`Kiosk_Device`**: Authorized to create sessions, post patient responses, and upload documents.
-2.  **`Triage_Nurse`**: Authorized to view the queue, process triage alerts, and override AI decisions.
-3.  **`Attending_Physician`**: Authorized to view clinical summaries, FHIR records, and queue data.
+Node is pinned to `24.19.0` in the root `.nvmrc`. Vite serves port `5173` and
+proxies `/api` to `http://127.0.0.1:8000`.
 
-*If an endpoint returns a `403 Forbidden`, check the role claim in your JWT.*
+## Active views
 
-## 3. Real-Time Clinician Dashboard (SSE)
+- `src/views/KioskIntakeView.tsx`: patient/proxy kiosk workflow.
+- `src/views/ClinicianQueueView.tsx`: clinician queue and review workflow.
+- `src/components/CardioVisionPanel.tsx`: current screening/referral surface.
 
-The Clinician Dashboard relies on Server-Sent Events (SSE) to maintain a live view of the waiting room, without aggressive polling.
+## API client
 
-*   **Endpoint:** `GET /api/clinician/queue/live`
-*   **Auth:** Requires `Triage_Nurse` or `Attending_Physician` role.
-*   **Protocol:** standard `text/event-stream`
+The backend OpenAPI schema is exported from the FastAPI app and then used to
+generate `src/client/`:
 
-### Example Frontend Connection:
-```javascript
-const eventSource = new EventSource('/api/clinician/queue/live', {
-    headers: { 'Authorization': `Bearer ${token}` } // Note: EventSource API auth requires a polyfill or cookie-based auth in some browsers
-});
-
-eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === 'queue_state') {
-        updateDashboardState(data.entries, data.total_count);
-    } else if (data.type === 'heartbeat') {
-        // Keep connection alive
-    }
-};
+```bash
+uv run --extra dev python scripts/export_openapi.py
+cd frontend && npm run generate-client
 ```
 
-## 4. BYOD Mobile PWA Expectations (Document Upload)
+Use generated functions/types. Do not hand-edit generated files or create a
+second handwritten contract.
 
-For Phase 1.5, patients will upload past medical records via their own devices (BYOD). The backend `OCRService` enforces strict limits on size and type. The PWA must handle optimization *before* hitting the API.
+## Authentication caution
 
-*   **Compression:** The PWA must compress images (JPEG/WebP) to under **10 MB** before upload.
-*   **Allowed MIME Types:** `image/jpeg`, `image/png`, `image/webp`. PDFs are currently rejected by the Vision model.
-*   **Future Architecture (Pre-signed URLs):** Currently, documents are sent as multipart form data. In the upcoming storage architecture update, the frontend will request a pre-signed GCS/S3 upload URL and upload directly to the storage bucket. Ensure your upload service is decoupled to accommodate this shift.
+Authentication is route-specific. Inspect the backend route decorator and
+`src/medikiosk/api/dependencies/auth.py` before using a raw `fetch`. The local
+UI may fall back to offline/demo state when auth or the API is unavailable; label
+that state and never show a fake provider success.
 
-## Next Steps
-1.  Import `openapi.json` into your Orval/Swagger Codegen to generate React Query hooks.
-2.  Run `scripts/simulate_patient.py` locally to see the backend logs in action.
-3.  Ping the backend team for staging credentials.
+## Required checks
+
+```bash
+npm run lint
+npm run build
+```
+
+For API changes also run OpenAPI export, SDK generation, backend tests, and the
+full regression row in `docs/REGRESSION.md`.

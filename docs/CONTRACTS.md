@@ -1,5 +1,11 @@
 # Domain Contracts
 
+> **Current-source note:** The executable contract definitions under
+> `src/medikiosk/domain/contracts/` are authoritative. This document is a
+> navigation/reference guide and may lag during active changes. When a contract
+> changes, update the code, tests, OpenAPI export, generated client, and relevant
+> ADR together. See `AGENTS.md`, `docs/TESTS.md`, and `docs/REGRESSION.md`.
+
 This document defines the strict data contracts that cross module boundaries in the MediKiosk application. All models reside in `src/medikiosk/domain/contracts/` and use Pydantic for validation.
 
 ## 1. SessionState

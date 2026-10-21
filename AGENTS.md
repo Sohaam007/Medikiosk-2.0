@@ -1,124 +1,186 @@
-# Agent Instructions
+# MediKiosk 2.0 — Agent Constitution
 
-You are an AI coding agent working on MediKiosk. Read this file completely before doing anything.
+This file is the active instruction surface for coding agents. Read it before
+editing anything. The linked documents are context and navigation; verify their
+claims against current code, configuration, tests, and Git history before acting.
 
-## What MediKiosk is
+## First-session reading order
 
-An AI clinical intake platform that captures patient medical history through voice and document
-scanning, produces bilingual clinical summaries, and generates FHIR-compliant health records.
-Read `docs/VISION.md` for the full product context.
+Read only this sequence first; it is designed to preserve context:
 
-## Before you write any code
+1. `docs/CONTEXT.md` — product mission, vocabulary, safety boundaries.
+2. `docs/ARCHITECTURE.md` — active runtime, package map, dependency direction.
+3. `docs/STATUS.md` — verified current state, blockers, and limitations.
+4. `docs/INTEGRATIONS.md` — live, mock, local, and unimplemented integrations.
+5. `docs/TESTS.md` — exact commands and focused verification.
+6. Task-specific ADRs in `docs/decisions/`.
 
-1. Read `docs/STATUS.md` — it tells you what exists and what does not.
-2. Read `docs/ARCHITECTURE.md` — it tells you WHERE to put code.
-3. Read `docs/ENGINEERING.md` — it tells you HOW to write code (including security rules).
-4. Read `docs/SECURITY.md` — it tells you the threat model and security mandates.
-5. Read `docs/TEAM.md` — it tells you WHO owns which files.
-6. Read `docs/WORKFLOW.md` — it tells you the git and PR process.
-7. Read `docs/AI_ORCHESTRATION.md` — it tells you the 3-layer AI safety net.
+Do not read the entire historical `docs/tasks/` directory to choose work. It
+contains older planning material and is not a reliable current backlog.
 
-> **You are Layer 1 (Writing Agent) or Layer 2 (Review Agent).** Your code will be
-> independently reviewed by a separate AI agent and then gated by automated CI/CD checks.
-> Do not cut corners — the review agent and CI will catch violations.
+## Current product truth
 
-## Project structure
+MediKiosk 2.0 is an offline-first clinical-intake prototype with a CardioVision
+screening vertical slice. The active journey is:
 
-```
-src/medikiosk/
-├── domain/        Pure business logic. NO I/O, NO network, NO imports from outer layers.
-├── ports/         Abstract interfaces (typing.Protocol). Domain depends on these.
-├── services/      Orchestration. Wires domain to adapters via ports.
-├── adapters/      Infrastructure implementations. Implements ports.
-└── api/           FastAPI routes. Thin layer calling services.
-
-tests/
-├── unit/          Tests for domain/ (fast, zero I/O, zero mocking)
-├── integration/   Tests for adapters/ and services/ (may use containers)
-├── e2e/           Full API workflow tests
-└── invariants/    Architectural rule enforcement (runs in CI)
+```text
+Screen → Intake → Explain → Route → Follow up
 ```
 
-## The rules (these override your judgment)
+The wider product target is:
 
-1. **Never put I/O in `domain/`.** No `open()`, no `requests`, no `datetime.now()`. Inject
-   everything. `tests/invariants/test_purity.py` will catch violations.
+```text
+Screen → Intake → Explain → Route → Travel → Heal → Follow-up
+```
 
-2. **Never import inward → outward.** `domain/` cannot import from `adapters/`, `services/`,
-   or `api/`. `tests/invariants/test_imports.py` will catch violations.
+The current repository is not a production clinical system. ABDM, PM-JAY,
+WhatsApp, hospital/EHR, payment, ambulance, medical-tourism, and live-capacity
+connections are not proven live integrations. See `docs/INTEGRATIONS.md`.
 
-3. **Never widen a contract without an ADR.** If you need to add a required field to a type
-   in `domain/contracts/`, create `docs/decisions/NNNN-slug.md` first.
+## Active runtime and source of truth
 
-4. **Never log PHI.** No patient names, ABHA IDs, Aadhaar numbers, diagnoses, or medications
-   in any log, error message, or exception. Use session-scoped identifiers only.
+- Backend package: `src/medikiosk/`.
+- FastAPI factory: `src/medikiosk/api/app.py` (`create_app`).
+- Dependency/composition boundary: `src/medikiosk/api/dependencies/container.py`.
+- Frontend: `frontend/`, React + TypeScript + Vite.
+- Patient workflow: `frontend/src/views/KioskIntakeView.tsx`.
+- Clinician workflow: `frontend/src/views/ClinicianQueueView.tsx`.
+- Generated HTTP contract: `docs/openapi.json`.
+- Generated TypeScript client: `frontend/src/client/`.
+- CardioVision assets: `models/cardiovision/`.
+- Local launcher: `start_dev.bat` and `start_dev.ps1`.
 
-5. **Never mark a task done without test evidence.** Every "Done when" criterion must have a
-   passing test or measurable output.
+The directories `backend/`, `core/`, `server/`, and `kiosk/` contain legacy or
+parallel implementation surfaces. Do not add new active runtime code there
+unless a task explicitly migrates one and includes a removal plan.
 
-6. **Never create files outside your assigned paths.** Check `docs/TEAM.md` for ownership.
+## Architecture rules
 
-7. **Never add a dependency without checking `pyproject.toml`.** New external libraries
-   require an ADR.
+The dependency direction is inward:
 
-## How to set up
+```text
+api → services → ports → domain
+adapters → ports and domain contracts
+```
+
+- `src/medikiosk/domain/` is deterministic business logic: no filesystem, network, database,
+  environment access, wall-clock reads, or model SDK imports.
+- `src/medikiosk/ports/` contains capability interfaces and stable contracts.
+- `src/medikiosk/services/` orchestrates use cases and coordinates repositories/adapters.
+- `src/medikiosk/adapters/` implements external systems, persistence, model loading, and
+  provider-specific behavior.
+- `src/medikiosk/api/` stays thin: validate, authorize, call a service/port, map responses.
+- `src/medikiosk/api/dependencies/container.py` is currently the intended API-to-adapter
+  wiring boundary.
+- Reuse contracts in `src/medikiosk/domain/contracts/`; widening a required
+  field requires an ADR first.
+
+## Clinical and privacy non-negotiables
+
+- Screening is not diagnosis; every screening response retains clinician review.
+- A critical clinical veto bypasses doctor choice, packages, payment, and routine
+  queue routing.
+- Never log names, ABHA IDs, Aadhaar numbers, phone numbers, diagnoses,
+  medications, lab values, transcripts, OCR text, audio, or raw model output.
+  Log opaque session IDs and operational metadata only.
+- Never put secrets in source, committed `.env` files, fixtures, screenshots,
+  documentation, or example payloads. `.env` is local and ignored.
+- Gemini/OpenAI are external PHI egress when configured; do not call the app
+  fully offline when those adapters are enabled.
+- Validate upload MIME type, size, and empty input before processing.
+- Catch specific exceptions; do not add broad swallowing or silent fallbacks that
+  make an unauthorized backend call look successful.
+
+## Setup and exact commands
+
+Pinned runtimes are `.python-version` (`3.11.9`) and `.nvmrc` (`24.19.0`).
 
 ```bash
-# Install uv (if not installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone and set up
-git clone https://github.com/Sohaam007/MediKiosk.git
-cd MediKiosk
-uv sync                              # install all dependencies
-cp .env.example .env                 # configure environment
-
-# Verify everything works
-uv run mypy src/ --strict            # type checking
-uv run pytest tests/unit/ -q         # unit tests
-uv run pytest tests/invariants/ -q   # architectural rules
-uv run ruff check src/ tests/        # linting
+uv sync --frozen --extra dev
+cd frontend && npm ci && cd ..
 ```
 
-## How to pick your next task
+Windows one-click startup:
 
-1. Open `docs/STATUS.md` — see what's currently in progress and what's blocked.
-2. Open `docs/tasks/` — find a task file for your domain.
-3. Find the first ticket where `Status: todo` and all `Depends on:` items are `done`.
-4. Update its status to `in progress`.
-5. Create a branch: `feat/<tag>-<n>-<slug>`.
-6. Build exactly what the ticket says. Nothing more.
-7. Run the pre-push checks.
-8. Open a PR with the ticket ID in the title.
+```powershell
+.\start_dev.bat
+.\start_dev.bat -NoBrowser
+```
 
-## What NOT to do
+Manual startup:
 
-- Do not refactor code that is not in your task ticket.
-- Do not rename files or move modules without an ADR.
-- Do not add "nice to have" features.
-- Do not create abstractions for use cases that do not exist yet.
-- Do not catch broad exceptions (`except Exception`).
-- Do not use `print()` for debugging — use `structlog`.
-- Do not store secrets in code — use environment variables.
-- Do not skip the type checker — `mypy --strict` must pass.
-- Do not concatenate patient text into LLM prompts — use parameterised templates.
-- Do not log LLM prompts or responses (they contain PHI).
-- Do not accept file uploads without MIME type and size validation.
-- Do not create new contract types when an existing one fits — check `docs/CONTRACTS.md`.
-- Do not carry LLM conversation history between sessions.
-- Do not bypass the three-layer review process (Write → Review → CI).
+```bash
+uv run uvicorn medikiosk.api.app:create_app --factory --reload --port 8000
+cd frontend && npm run dev
+```
 
-## Key files to read when stuck
+Authoritative local checks:
 
-| Question | Read |
-|---|---|
-| Where does this code go? | `docs/ARCHITECTURE.md` |
-| What type should I use? | `docs/CONTRACTS.md` → `src/medikiosk/domain/contracts/` |
-| How should I name things? | `docs/ENGINEERING.md` |
-| What should I build next? | `docs/STATUS.md` → `docs/tasks/` |
-| Why was this decision made? | `docs/decisions/` |
-| What has failed before? | `docs/FAILURE_ANALYSIS.md` |
-| Who owns this file? | `docs/TEAM.md` |
-| What are the security rules? | `docs/SECURITY.md` + `docs/ENGINEERING.md` §7-9 |
-| How does the AI workflow work? | `docs/AI_ORCHESTRATION.md` |
-| What threats exist? | `docs/SECURITY.md` §1 (Threat Landscape) |
+```bash
+make test
+uv run --extra dev ruff check src/ tests/
+uv run --extra dev ruff format --check src/ tests/
+uv run --extra dev mypy src/ --strict
+cd frontend && npm run lint && npm run build
+```
+
+On Windows without `make`, run the `uv` and `npm` commands directly. Run the
+full Python suite after backend, contract, adapter, or generated-client changes;
+run frontend lint/build after frontend or OpenAPI changes.
+
+## Generated artifacts and API changes
+
+When routes or Pydantic schemas change, execute in this order:
+
+```bash
+uv run --extra dev python scripts/export_openapi.py
+cd frontend && npm run generate-client
+cd ..
+uv run --extra dev ruff check src/ tests/
+uv run --extra dev mypy src/ --strict
+uv run --extra dev python -m pytest tests/ -q
+cd frontend && npm run build
+```
+
+Do not hand-edit `docs/openapi.json` or generated files under
+`frontend/src/client/`. If the generated diff is unexpectedly large, stop and
+inspect the OpenAPI change before committing.
+
+## Feature delivery protocol
+
+Every non-trivial feature needs a bounded task packet containing the user
+outcome, allowed/forbidden paths, contract/port changes, mock behavior, external
+egress implications, tests, rollback plan, and documentation owner.
+
+Implement in this order unless an ADR justifies another order:
+
+```text
+contract → port → mock adapter → domain/service → API → generated client → UI
+→ focused tests → full checks → docs/status update
+```
+
+Use one branch and one logical commit per capability. Follow
+`docs/WORKFLOW.md` and `docs/AI_ORCHESTRATION.md`.
+
+## Documentation governance
+
+- `AGENTS.md` is the constitution and must stay short enough to read every
+  session.
+- `docs/ARCHITECTURE.md` is the current map, not a historical narrative.
+- `docs/STATUS.md` is the current health/blocker record.
+- `docs/INTEGRATIONS.md` owns live-vs-mock integration truth.
+- `docs/TESTS.md` owns executable verification guidance.
+- `docs/decisions/` owns durable architectural decisions.
+- Update the canonical owner when its fact changes; do not duplicate changing
+  facts into several documents.
+
+## Stop conditions
+
+Stop and ask for a decision, or record an ADR, when:
+
+- a cross-module contract is widened;
+- a dependency, provider, database, model, or deployment target is added;
+- patient data may leave the process or cross a trust boundary;
+- a legacy directory would become active again;
+- tests and documentation disagree;
+- a production claim would rely only on a mock or UI card.

@@ -1,73 +1,73 @@
-# MediKiosk — Product Vision
+# MediKiosk 2.0 — Product Vision
 
-## What MediKiosk is
+MediKiosk 2.0 is a unified, consent-aware health-journey platform for Indian
+healthcare. It connects preventive screening, multilingual clinical intake,
+explainable routing, treatment/travel coordination, and follow-up continuity.
 
-MediKiosk is an **AI clinical intake platform** that replaces the manual patient history-taking
-process in Indian hospitals. A patient walks up to a kiosk (or opens a web browser), speaks
-in their language, scans their old prescriptions and reports, and walks away — leaving behind
-a structured, bilingual, physician-ready clinical history backed by a FHIR-compliant health
-record.
+## North-star journey
 
-It is not a chatbot. It is not an EHR. It is the **missing bridge** between the patient
-walking into the hospital and the physician opening their chart.
+```text
+Screen → Intake → Explain → Route → Travel → Heal → Follow-up
+```
 
-## Why MediKiosk exists
+## Problem
 
-**The problem is time.** In Indian public hospitals, one physician serves 50–100+ OPD patients
-per day. Each patient requires 10–20 minutes of history-taking. The physician is simultaneously
-listening, writing, examining, and thinking. The result:
+The product brief identifies three connected gaps:
 
-- Incomplete histories (symptoms missed, drug interactions uncaught)
-- Illegible handwritten records that cannot be digitised or shared
-- Patients waiting 2–4 hours for a 5-minute consultation
-- No structured data for hospital analytics, research, or insurance
+1. many people lack convenient specialist access and point-of-care diagnostics;
+2. medical-tourism services are fragmented across hospitals, coordinators,
+   travel, and follow-up;
+3. community preventive screening is not connected to structured clinical intake
+   and longitudinal care.
 
-**The solution is structured automation.** MediKiosk conducts the history-taking conversation
-using clinical protocols (SOCRATES, Review of Systems), digitises existing medical records
-using vision AI, and synthesises everything into a bilingual, coded, physician-ready summary
-— all in 5–8 minutes with zero physician time.
+The supplied market figures are product-brief inputs. They require source-backed
+verification before appearing in public marketing or investor material.
 
-## The market
+## Solution
 
-- **India has 1.4B people** and approximately 1 doctor per 1,000 population (WHO recommends 1:250).
-- **Ministry of Ayush** oversees 800,000+ registered practitioners across Ayurveda, Yoga,
-  Unani, Siddha, and Homeopathy — all of whom need clinical intake.
-- **ABDM (Ayushman Bharat Digital Mission)** is building the national health data infrastructure
-  with ABHA IDs and FHIR-based health records. MediKiosk plugs directly into this.
-- **Private hospital chains** (Apollo, Fortis, Max, Narayana) spend ₹200–500 per OPD patient
-  on administrative overhead. Structured intake reduces this by 40–60%.
+MediKiosk provides:
+
+- calibrated and explainable risk-screening slots, beginning with CardioVision;
+- voice, touch, and prescription/document intake in 8+ Indian languages;
+- clinician-ready summaries and interoperable FHIR output;
+- transparent specialist/hospital matching by condition, budget, location,
+  language, insurance, travel, and verified availability;
+- consent-based digital health passport and communication flows;
+- drug-safety and follow-up support;
+- optional Blender/3D education and explainability with accessible fallbacks.
+
+## What the current repository proves
+
+The current checkout is a local working prototype, not a production deployment.
+It proves a CardioVision-centered intake vertical slice, local persistence,
+clinician queue behavior, local ABDM-shaped flows, and deterministic mocks.
+
+It does not prove live ABDM, PM-JAY, WhatsApp, hospital/EHR, payment, ambulance,
+medical-tourism, or clinical-model performance. See `docs/INTEGRATIONS.md` and
+`docs/STATUS.md`.
 
 ## What MediKiosk is not
 
-- **Not a diagnostic tool.** It captures history; it does not diagnose.
-- **Not an EHR replacement.** It feeds INTO existing EHR/HIS systems via FHIR.
-- **Not English-only.** It is built for India's linguistic diversity from day one.
-- **Not cloud-dependent.** The core pipeline runs entirely offline. Only ABDM push requires network.
+- not an autonomous diagnostic system;
+- not an EHR replacement;
+- not a substitute for a clinician or emergency service;
+- not a booking/payment/travel agent without verified providers and confirmation;
+- not “fully offline” when Gemini/OpenAI adapters are configured;
+- not allowed to claim FHIR compliance or model performance without external
+  validation/evaluation evidence.
 
-## The three-sentence pitch
+## Success measures
 
-> MediKiosk is an AI clinical intake platform that lets hospital patients self-report their
-> medical history through voice and document scanning in any Indian language. It produces a
-> structured, bilingual, FHIR-compliant clinical summary that eliminates 80% of the physician's
-> history-taking workload. Deployed as a kiosk, web app, or API, it integrates with India's
-> ABDM health infrastructure on day one.
+Measure each capability with a reproducible protocol:
 
-## Success metrics
+- intake time and completion;
+- clinical completeness against a reviewed rubric;
+- language-specific speech accuracy;
+- document/entity extraction quality;
+- model discrimination and calibration;
+- subgroup/safety performance;
+- FHIR validation and destination acceptance;
+- consent, purge, audit, and PHI safety;
+- accessibility, offline recovery, and operational reliability.
 
-| Metric | Target | How we measure |
-|---|---|---|
-| Intake time reduction | From 15–20 min to 5–8 min | End-to-end session timing |
-| Clinical completeness | ≥ 85% of physician-taken history | Rubric scoring vs. gold standard |
-| Patient satisfaction | ≥ 4.2/5.0 rating | Post-intake survey |
-| OCR entity accuracy | ≥ 80% F1 on Indian medical documents | Corpus benchmark |
-| ASR WER (Hindi) | ≤ 15% on medical speech | Corpus benchmark |
-| FHIR validation | 100% pass rate | HAPI validator |
-| DPDP compliance | Zero violations in audit | Consent chain + invariant tests |
-| Deployment modes | Kiosk + Web + API | Integration tests per mode |
-
-## Revenue model (future)
-
-1. **SaaS per-kiosk licensing** to hospitals and clinics (₹5,000–15,000/month/kiosk)
-2. **API access** for health-tech platforms integrating clinical intake
-3. **Government contracts** with Ministry of Ayush and state health departments
-4. **White-label deployments** for hospital chains
+Business metrics and market claims must be kept separate from clinical evidence.

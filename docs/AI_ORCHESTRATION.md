@@ -1,237 +1,214 @@
-# AI-Orchestrated Software Development Lifecycle
+# MediKiosk 2.0 — AI Agent Operating Model
 
-## 1. The Problem: 2 Humans Building Enterprise Software
+**Role:** repeatable workflow for OpenCode, Claude, Codex, Copilot, Gemini, and
+other coding agents working on this repository.
 
-MediKiosk requires ~50,000+ lines of production code across backend, frontend, tests, and
-infrastructure. A 2-person team cannot write, review, test, and maintain this manually.
+The project uses AI for implementation, but no agent is allowed to turn an
+unverified prototype into a production claim. Agents must produce small,
+reviewable, executable changes with evidence.
 
-AI agents (Antigravity, GitHub Copilot, Claude, Gemini) are the primary code generators.
-But AI agents have dangerous failure modes: hallucination, security blindness, architectural
-drift, context loss, and phantom types. Without a structured orchestration system, the
-codebase **will** devolve into spaghetti code with critical security gaps.
+## Agent session contract
 
-## 2. The Three-Layer Safety Net
+Every implementation session starts by reading:
 
-Every line of AI-generated code passes through three independent quality gates before
-reaching `main`. No single gate is sufficient alone — they catch different failure modes.
-
-### Layer 1: The Writing Agent (Code Generator)
-The AI that writes the code.
-
-**Rules for prompting a writing agent:**
-1. Always start with: "Read AGENTS.md first."
-2. Point to exactly ONE task ticket from docs/tasks/ (never multiple tasks per session)
-3. Include the full task spec in the prompt (copy the Build section)
-4. Explicitly state constraints: "Do not modify any file outside of [specific paths]"
-5. Require the agent to run tests before declaring done
-
-**Prompt template:**
-```
-You are working on MediKiosk. Read AGENTS.md first.
-
-Your task is [TAG-N] from docs/tasks/[FILE].md.
-Here is the full task spec:
-[paste Build section]
-
-Constraints:
-- Only create/modify files in: [list exact paths]
-- Run `uv run pytest tests/invariants/ -q` before declaring done
-- Run `uv run mypy src/ --strict` before declaring done
-- Do not modify any existing contract types
-- Do not add dependencies to pyproject.toml without an ADR
-
-Done when: [paste Done when criteria]
+```text
+AGENTS.md
+docs/CONTEXT.md
+docs/ARCHITECTURE.md
+docs/STATUS.md
+docs/INTEGRATIONS.md
+docs/TESTS.md
 ```
 
-### Layer 2: The Review Agent (Architectural Auditor)
-A SEPARATE AI agent session that reviews the writing agent's output.
+Then read only the task-specific files and relevant ADRs. Do not load the whole
+repository or every historical task file by default.
 
-**Rules for the review agent:**
-1. NEVER the same session as the writing agent (prevents confirmation bias)
-2. Must be prompted with: "You are a hostile code reviewer. Find every flaw."
-3. Reviews against 5 checklists:
-   - [ ] Clean architecture compliance (no import violations)
-   - [ ] PHI safety (no patient data in logs, errors, or responses)
-   - [ ] Contract consistency (new code uses existing contracts, doesn't create parallel types)
-   - [ ] Test coverage (every public function has a test, every test has an assertion message)
-   - [ ] Security (no SQL injection, no XSS, no secrets in code, no broad exception handling)
-4. The review agent MUST run the invariant tests independently
-5. The review agent produces a structured verdict: PASS / FAIL with specific line references
+## Task packet
 
-**Review prompt template:**
-```
-You are a hostile code reviewer for MediKiosk.
-Read AGENTS.md, then docs/ARCHITECTURE.md, then docs/ENGINEERING.md, then docs/SECURITY.md.
+No agent should receive an unbounded request such as “improve the app.” Use this
+packet for every feature, fix, migration, model, integration, or UI change:
 
-Review the following changes for task [TAG-N]:
-[paste git diff or list of modified files]
+```markdown
+# Task: <short name>
 
-Check against:
-1. Clean architecture (domain/ has no I/O, imports point inward)
-2. PHI safety (no patient data in logs/errors/responses)
-3. Contract consistency (uses existing types from domain/contracts/)
-4. Test quality (every public function tested, assertion messages present)
-5. Security (no injection, no XSS, no secrets, no broad exceptions)
+## User outcome
+<What becomes possible or safer?>
 
-Run: `uv run pytest tests/invariants/ -q`
-Run: `uv run mypy src/ --strict`
-Run: `uv run ruff check src/ tests/`
+## Scope
+- Allowed paths:
+- Forbidden paths:
+- Out of scope:
 
-Output format:
-## Verdict: PASS or FAIL
-## Issues Found (if any):
-- [file:line] Description of issue
-## Architectural Invariant Test Results:
-[paste output]
-```
+## Current evidence
+- Existing entrypoints:
+- Existing contracts/ports:
+- Existing tests:
+- Relevant ADRs:
 
-### Layer 3: The CI/CD Gatekeeper (Absolute Authority)
-Automated pipeline that runs on every PR. No human or AI can bypass it.
+## Contract
+- Request/response or domain shape:
+- Auth/consent requirements:
+- PHI/external-egress boundary:
 
-**CI pipeline stages:**
-```
-Stage 1: Lint & Format
-  └── ruff check src/ tests/
-  └── ruff format --check src/ tests/
+## Implementation order
+1. Contract, if needed
+2. Port
+3. Mock/offline adapter
+4. Domain/service behavior
+5. API route
+6. Generated OpenAPI/client
+7. Frontend feature
 
-Stage 2: Type Safety
-  └── mypy src/ --strict
+## Acceptance criteria
+- [ ]
+- [ ]
 
-Stage 3: Architectural Invariants
-  └── pytest tests/invariants/ -q --tb=short
+## Verification
+- Focused command:
+- Downstream commands:
+- Manual/browser check:
 
-Stage 4: Unit Tests
-  └── pytest tests/unit/ -q --tb=short --cov=src/medikiosk/domain --cov-fail-under=80
+## Rollback
+<How to disable or revert safely?>
 
-Stage 5: Security Scan
-  └── pip-audit
-  └── ruff check --select S src/   (bandit security rules)
-  └── gitleaks detect --source .
-
-Stage 6: Integration Tests (on merge to main only)
-  └── pytest tests/integration/ -q --tb=short
-
-Stage 7: SBOM & Artifact
-  └── Generate Software Bill of Materials
-  └── Build container image
-  └── trivy image scan
+## Documentation to update
+- `docs/STATUS.md`:
+- `docs/INTEGRATIONS.md`:
+- ADR or model card:
 ```
 
-**Merge rules:**
-- ALL stages must pass (no exceptions, no manual overrides)
-- At least 1 human approval required
-- Branch must be up-to-date with main
-- PR title must reference a task ticket
+## Standard delivery loop
 
-## 3. The AI Agent Workflow (Step by Step)
-
-This is the exact workflow for completing one task from start to merge:
-
-```mermaid
-flowchart TD
-    H1["Human picks task from docs/tasks/"] --> H2["Human prompts Writing Agent"]
-    H2 --> A1["Writing Agent reads AGENTS.md"]
-    A1 --> A2["Writing Agent implements task"]
-    A2 --> A3["Writing Agent runs local tests"]
-    A3 -->|Tests pass| A4["Writing Agent commits & pushes"]
-    A3 -->|Tests fail| A2
-    A4 --> H3["Human prompts Review Agent"]
-    H3 --> R1["Review Agent reads architecture docs"]
-    R1 --> R2["Review Agent audits code"]
-    R2 --> R3["Review Agent runs invariant tests"]
-    R3 -->|PASS| H4["Human opens PR"]
-    R3 -->|FAIL| H2
-    H4 --> CI["CI/CD Pipeline runs all gates"]
-    CI -->|All pass| M["Human approves & merges"]
-    CI -->|Any fail| H2
-    M --> U["Human updates task status to done"]
+```text
+Understand → Specify → Implement → Verify → Review → Document → Commit
 ```
 
-## 4. Anti-Patterns: How AI Agents Break Codebases
+### 1. Understand
 
-These are the 10 most common failure modes we've observed when AI agents generate code.
-Each one has a concrete prevention mechanism built into our pipeline.
+- Confirm the active runtime path.
+- Find existing contracts, ports, services, routes, and generated artifacts.
+- Search for callers before changing an interface.
+- Identify whether the requested capability is live, mocked, or planned.
 
-| # | Anti-Pattern | Example | Prevention |
-|---|---|---|---|
-| 1 | Scope creep | Agent asked to build OCR, also refactors intake engine | One ticket per session, explicit path constraints |
-| 2 | Phantom types | Agent creates `OcrResult` instead of using existing `DocumentScan` | Review agent checks contract consistency |
-| 3 | Test theater | Agent writes tests that always pass (no real assertions) | Review agent checks assertion messages |
-| 4 | Import contamination | Agent imports `requests` in domain/ | Invariant test catches this |
-| 5 | Secret leakage | Agent hardcodes API key in adapter | gitleaks in CI catches this |
-| 6 | Broad exception swallowing | Agent uses `except Exception: pass` | Ruff S110 rule catches this |
-| 7 | Context bleed | Agent carries patient data from previous task context | Fresh agent session per task |
-| 8 | Dependency sprawl | Agent adds 5 new pip packages for one feature | ADR required for new deps |
-| 9 | Architecture erosion | Agent puts business logic in API route handler | Import invariant test catches this |
-| 10 | Documentation drift | Agent changes code but doesn't update contracts doc | Review checklist includes doc sync |
+### 2. Specify
 
-## 5. Human Responsibilities (The 20% That Matters)
+- Write acceptance criteria before implementation.
+- Add an ADR before widening a contract, adding a dependency/provider/model,
+  changing a security boundary, or reactivating a legacy tree.
+- Define offline/demo behavior separately from external-provider behavior.
 
-AI agents handle the 80% (code generation, refactoring, test writing). Humans handle the
-20% that requires judgment, accountability, and context that AI cannot have.
+### 3. Implement
 
-### Soham (Lead Architect)
-1. **Task selection:** Decide which task to build next (dependency ordering)
-2. **Prompt engineering:** Write the writing agent prompt with correct constraints
-3. **Review triage:** Read the review agent's verdict and decide fix vs. accept
-4. **ADR approval:** Approve or reject architecture decision records
-5. **Security audit:** Monthly review of secrets, access patterns, and audit trail
-6. **Merge authority:** Final approval on all PRs to main
+Prefer this dependency direction:
 
-### Soumyadeep (Frontend & Integration)
-1. **Frontend task selection:** Pick frontend tasks after API stabilization
-2. **Integration testing:** Verify frontend-backend contract alignment
-3. **UX review:** Ensure kiosk UI is accessible and clinically appropriate
-4. **Cross-review:** Review Soham's PRs for a second pair of eyes
-
-### What humans should NEVER do:
-- Write code directly in main without going through the AI → Review → CI pipeline
-- Override CI failures ("it works on my machine")
-- Skip the review agent step ("it looks fine to me")
-- Merge without all checks passing
-
-## 6. Context Management for AI Agents
-
-The biggest risk in AI-assisted development is context loss. An agent that doesn't know
-the current state of the codebase will hallucinate types, duplicate logic, and violate
-architectural rules. These protocols prevent that.
-
-### The Navigation Map
-Every AI agent session starts with AGENTS.md, which contains:
-- Project structure overview
-- Links to all architectural docs
-- The 7 inviolable rules
-- How to find the next task
-
-### The Context Budget
-- One task per AI session. Never ask an agent to do multiple unrelated tasks.
-- If a task requires reading more than 5 files, break it into subtasks.
-- If an agent's context window fills up, start a new session with the same task and a summary of what was already done.
-
-### The Handoff Protocol
-When switching between AI agents (or between sessions of the same agent):
-1. Update docs/STATUS.md with what was completed
-2. Commit work-in-progress to the feature branch
-3. Write a handoff note in the PR description: "Completed X, remaining: Y, blocked on: Z"
-4. The next agent session reads STATUS.md + the PR description to pick up where the last one left off
-
-## 7. Scaling to More AI Agents
-
-As the project grows, we may run multiple AI agent sessions in parallel. These conventions
-prevent merge conflicts, race conditions, and architectural drift across concurrent agents.
-
-### File-Level Locking Convention
-- Two AI agents must NEVER modify the same file simultaneously
-- TEAM.md defines file ownership. Each file has exactly one owner.
-- If two tasks need the same file, they must be serialized (one blocks on the other)
-
-### Parallel Work Lanes
-```
-Lane A (Soham + AI Agent):     domain/ → ports/ → adapters/ → services/
-Lane B (Soumyadeep + AI Agent): frontend/ → api/schemas/ → tests/e2e/
-Merge Point:                    api/routes/ (requires both lanes complete)
+```text
+contract → port → mock adapter → service/domain → API → generated client → UI
 ```
 
-These lanes never overlap. The contracts in domain/contracts/ are the handshake.
+Keep changes bounded to the task packet. Do not mix a feature with a broad
+refactor unless the refactor is the task and its callers are tested.
 
----
+### 4. Verify
+
+- Run the focused check first.
+- Run every downstream command in `docs/REGRESSION.md`.
+- Run the full relevant gate before declaring completion.
+- Capture exact commands and results; never report a check that was not run.
+
+### 5. Review
+
+The reviewer must be independent from the implementation pass when possible and
+must look for:
+
+- domain purity/import violations;
+- PHI logging or external-egress leaks;
+- missing auth, consent, timeout, retry, or idempotency behavior;
+- contract/client drift;
+- mock behavior presented as live behavior;
+- critical-patient commercial-flow bypass failures;
+- accessibility and offline regressions;
+- tests that assert implementation details instead of user behavior.
+
+### 6. Document
+
+Update only the canonical owner of changed facts:
+
+- structure → `docs/ARCHITECTURE.md`;
+- current health/limitations → `docs/STATUS.md`;
+- provider/mock state → `docs/INTEGRATIONS.md`;
+- commands/test evidence → `docs/TESTS.md`;
+- durable decision → `docs/decisions/`;
+- product vocabulary/scope → `docs/CONTEXT.md`.
+
+### 7. Commit
+
+Use one logical commit per capability:
+
+```text
+feat(scope): add capability
+fix(scope): correct behavior
+test(scope): add regression coverage
+refactor(scope): preserve behavior while restructuring
+docs(scope): update canonical guidance
+chore(scope): maintain tooling
+```
+
+## Agent roles
+
+Roles are boundaries, not separate codebases:
+
+| Role | Primary responsibility | Must return |
+|---|---|---|
+| Architect | contracts, ports, package boundaries, ADRs | dependency/impact map and acceptance criteria |
+| Backend | domain, services, adapters, routes | code, tests, API impact, evidence |
+| Frontend | shadcn/theme, views, generated client, accessibility | UI change, states, responsive/a11y evidence |
+| ML | model registry, calibration, evaluation, model cards | metrics, thresholds, limitations, reproducibility |
+| Blender/3D | `.blend` scenes, GLB export, manifests, fallbacks | asset manifest, export command, performance fallback |
+| Integrations | provider adapters and operations | auth, timeout, retry, webhook, sandbox evidence |
+| Security | PHI, secrets, auth, trust boundaries | risk findings and required gates |
+| QA | regression, contract, E2E, accessibility, offline tests | command output and gap list |
+| Release | version, build, deployment, rollback | release evidence and unresolved risks |
+
+## Handoff format
+
+End every non-trivial session with:
+
+```markdown
+## Handoff — <date>
+
+### Goal
+
+### Completed
+-
+
+### Files changed
+-
+
+### Evidence
+- Command: `<exact command>`
+  Result: `<exit code / summary>`
+
+### Not completed
+-
+
+### Risks or blockers
+-
+
+### Next concrete step
+
+### Do not recreate
+<Intentional removals, rejected approaches, or mock/live boundaries.>
+```
+
+## Model and integration claims
+
+Agents must use these labels precisely:
+
+- `mock` means local simulated behavior.
+- `real` may mean local model assets or a provider-capable adapter; it does not
+  automatically mean clinically validated or externally connected.
+- `sandbox` means a provider test environment with dated evidence.
+- `verified live` requires external delivery/readback proof and an owner.
+
+Never promote a feature based on a UI card, seed record, fixture, or passing mock
+test alone.

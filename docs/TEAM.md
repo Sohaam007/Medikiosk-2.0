@@ -1,71 +1,98 @@
-# Team
+# MediKiosk 2.0 — Ownership and Agent Roles
 
-## Members
+This file defines who reviews which surface and how AI agents divide work. It
+does not replace GitHub CODEOWNERS or a task tracker; it prevents agents from
+guessing ownership.
 
-| Name | Handle | Role | Domains | Availability |
-|---|---|---|---|---|
-| Soham | `@soham` | Lead Architect · Backend · AI/ML | `src/core/`, `src/infrastructure/`, `src/api/`, `tests/`, `docs/` | Primary |
-| Soumyadeep | `@soumyadeep` | Frontend · Integration · Testing | `frontend/`, `src/api/routes/`, `tests/integration/` | Primary |
+## Human ownership currently recorded in the repository
 
-## Ownership model
+| Owner | Primary areas | Review responsibility |
+|---|---|---|
+| Soham | backend architecture, domain, ports, services, adapters, docs, security | contracts, invariants, provider boundaries, production claims |
+| Soumyadeep | frontend, API route integration, integration tests, UX | generated client alignment, accessibility, browser behavior |
 
-Every file has exactly one owner. The owner:
-1. Reviews all PRs that touch their files.
-2. Makes architectural decisions for their domain (with an ADR for cross-cutting changes).
-3. Is the person who gets paged when their domain breaks.
+If a change crosses both areas, one person writes and the other reviews. Do not
+create two independent implementations of the same file or contract.
 
-Two people on the same file = one writes, one reviews. Never two writers.
+## Active path ownership
 
-## Domain ownership map
+| Path | Default owner | Required reviewer |
+|---|---|---|
+| `src/medikiosk/domain/` | Backend/domain | Backend architecture reviewer |
+| `src/medikiosk/ports/` | Backend architecture | Affected integration owner |
+| `src/medikiosk/services/` | Backend/application | Backend architecture reviewer |
+| `src/medikiosk/adapters/` | Backend/integration | Security and affected provider reviewer |
+| `src/medikiosk/api/` | Backend/API | Frontend/integration reviewer when contract changes |
+| `frontend/` | Frontend | Backend/API reviewer when SDK/API changes |
+| `tests/` | Feature owner | Independent QA/reviewer |
+| `models/`, `eval/` | ML/model owner | Clinical-safety and data reviewer |
+| `blender/` and 3D frontend | 3D/UI owner | Frontend performance/accessibility reviewer |
+| `docs/` | Architecture owner | Affected domain owner |
+| `.github/`, Docker, deployment | Release/security owner | Backend architecture reviewer |
 
-```
-src/
-├── core/                          @soham     # Pure business logic, zero dependencies
-│   ├── intake/                    @soham     # Clinical Q&A engine, SOCRATES, Dashavidha
-│   ├── ocr/                       @soham     # Document processing, entity extraction
-│   ├── synthesis/                 @soham     # Summary generation, bilingual output
-│   ├── triage/                    @soham     # Red-flag detection, emergency protocol
-│   ├── consent/                   @soham     # DPDP consent, audit chain
-│   ├── fhir/                      @soham     # FHIR R4 bundle generation
-│   ├── timeline/                  @soham     # Chronological event builder
-│   └── contracts/                 @soham     # Shared Pydantic types (frozen)
-│
-├── infrastructure/                @soham     # External service adapters
-│   ├── llm/                       @soham     # Gemini/OpenAI adapter
-│   ├── database/                  @soham     # SQLAlchemy + PostgreSQL
-│   ├── storage/                   @soham     # File/blob storage
-│   ├── abdm/                      @soham     # ABDM gateway client
-│   └── cache/                     @soham     # Redis/in-memory cache
-│
-├── api/                           @soham     # FastAPI application
-│   ├── routes/                    @soumyadeep (write) / @soham (review)
-│   ├── middleware/                @soham
-│   ├── dependencies/              @soham
-│   └── schemas/                   @soham     # Request/response Pydantic models
-│
-frontend/                          @soumyadeep  # Next.js application
-│
-tests/
-├── unit/                          @soham     # Pure function tests
-├── integration/                   @soumyadeep (write) / @soham (review)
-├── e2e/                           @soumyadeep
-└── invariants/                    @soham     # Architectural rule enforcement
-│
-docs/                              @soham     # Primary author, both review
-scripts/                           @soham
-```
+## Role-based agents
 
-## Communication protocol
+### Architect
 
-1. **Blocking question?** → Message the owner directly. Do not guess.
-2. **Cross-domain change?** → Open an ADR in `docs/decisions/`. Both review.
-3. **Contract change?** → ADR required. Both review. Cannot merge without both approvals.
-4. **Hotfix needed?** → Owner fixes. Other person reviews within 2 hours.
+Owns boundaries, ADRs, contracts, dependency direction, migration sequencing,
+and the regression map. Must return an impact map before implementation.
 
-## Escalation path
+### Backend agent
 
-If you are blocked on a decision for more than 30 minutes:
-1. Write your proposed solution in the ADR format.
-2. Implement behind a feature flag.
-3. The other person reviews when available.
-4. Never block on consensus — build, flag, review.
+Owns pure domain rules, ports, services, adapters, routes, persistence, and
+backend tests. Must keep routes thin and must never place provider code in the
+domain.
+
+### Frontend agent
+
+Owns React features, custom shadcn-compatible primitives, theme tokens,
+generated client usage, responsive behavior, kiosk touch targets, and a11y.
+Must not manually duplicate backend contracts.
+
+### ML agent
+
+Owns model registry, preprocessing, calibration, evaluation, model cards,
+thresholds, explainability payloads, and rollback metadata. Must not claim
+clinical performance without a reproducible report.
+
+### Blender/3D agent
+
+Owns `.blend` scenes, materials, export scripts, GLB manifests, asset validation,
+and frontend 3D fallback behavior. Must not use real patient likenesses or block
+the primary UI on GPU capability.
+
+### Integrations agent
+
+Owns ABDM, FHIR/EHR, PM-JAY, WhatsApp/SMS, payments, pharmacy, travel, and
+hospital-provider adapters. Each integration starts as a mock and has timeout,
+retry, idempotency, signature, audit, and rollback rules.
+
+### Security/privacy agent
+
+Owns PHI review, auth/role checks, secret handling, upload validation, external
+egress review, threat-model updates, and security gates.
+
+### QA agent
+
+Owns regression, contract, invariant, E2E, accessibility, visual, offline, and
+clean-clone checks. The QA agent reports actual commands and exit codes.
+
+### Release/operations agent
+
+Owns versioning, CI, Docker, migrations, deployment, observability, backups,
+runbooks, rollback, and release evidence.
+
+## Assignment rules
+
+- One task packet has one accountable owner.
+- A task may have multiple reviewers but not multiple uncoordinated writers.
+- A cross-domain contract change needs an ADR and both domain owners' review.
+- A new provider needs integration and security review before sandbox use.
+- A model change needs ML and clinical-safety review before production claims.
+- A UI change affecting clinical wording needs product/clinical review.
+
+## Escalation
+
+If a decision is blocked for more than one working session, write the proposed
+options and risks in an ADR or task note. Do not silently choose a provider,
+clinical threshold, data-retention rule, or production deployment target.

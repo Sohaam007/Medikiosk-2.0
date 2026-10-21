@@ -1,5 +1,10 @@
 # Architecture Backlog
 
+> **Historical backlog notice:** This file contains future ideas and older path
+> names. It is not the current architecture or active task queue. Reconcile any
+> item with `docs/ARCHITECTURE.md`, `docs/STATUS.md`, and `docs/ROADMAP.md`
+> before implementation.
+
 > **Purpose:** This document is MediKiosk's architectural memory bank for planned product
 > expansions. It was populated during Phase 7 (Architecture Review) after benchmarking
 > against international platforms (OPDX, ERTRIAGE, Mediktor, Phreesia, Waitwhile, Qminder)
