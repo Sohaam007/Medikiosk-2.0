@@ -52,8 +52,8 @@ AGENTS.md
 - [`docs/team/README.md`](team/README.md) — named human owners and AI-agent lanes.
 - `docs/FRONTEND_HANDOFF.md` — current frontend/API handoff.
 - `docs/UNVERIFIED.md` — current environment-dependent verification gaps.
-- `docs/ARCHITECTURE_BACKLOG.md` — concise future capability map.
-- `docs/archive/ARCHITECTURE_BACKLOG-legacy-2026-10-22.md` — archived detailed backlog; do not treat as active scope.
+- `docs/ARCHITECTURE_BACKLOG.md` — concise future capability map; old drafts are local-only.
+- `docs/archive/README.md` — boundary for historical material kept outside the tracked tree.
 - `docs/templates/` — feature, integration, model, and handoff packets.
 - `scripts/check_repo_hygiene.py` — dependency-free tracked-file and active-doc check.
 - `docs/CONTRACTS.md` — domain contract reference.

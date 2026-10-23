@@ -7,6 +7,8 @@ judge may need from the repository.
 
 - `registration-kit.md` — registration copy and category information.
 - `deck/SEVA-2026-Diploma-Higher-Education.pptx` — the tracked presentation.
+- `reference/` — historical background documents intentionally included for
+  judging context, not runtime source of truth.
 - `evidence/` — only final, synthetic, redacted evidence that is intentionally
   small enough and safe to review in Git.
 

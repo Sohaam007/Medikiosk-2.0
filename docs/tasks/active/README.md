@@ -26,5 +26,5 @@ The packet is the work contract for the agent. It must name one human owner and
 one reviewer, define allowed and forbidden paths, state the user outcome, list
 acceptance criteria, and record exact verification commands.
 
-Update the matching row in `docs/FEATURES.md` in the same PR. Do not use the
-historical files under `docs/tasks/` as an active backlog.
+Update the matching row in `docs/FEATURES.md` in the same PR. Do not use
+historical material outside the repository as an active backlog.

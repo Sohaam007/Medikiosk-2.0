@@ -51,6 +51,6 @@ bridges the complete health journey: Screen → Intake → Route → Travel → 
 
 | Document | Purpose |
 |----------|---------|
-| [MediKiosk 2.0 Vision](../docs/archive/reference/medikiosk_2.0_vision-legacy.md) | Historical full platform vision, architecture, and revenue model |
-| [Original SEVA Recommendation](../docs/archive/reference/seva_2026_recommendation-legacy.md) | Historical strategic analysis and category selection |
+| [MediKiosk 2.0 Vision](reference/medikiosk_2.0_vision-legacy.md) | Historical full platform vision, architecture, and revenue model |
+| [Original SEVA Recommendation](reference/seva_2026_recommendation-legacy.md) | Historical strategic analysis and category selection |
 | [Working-model submission notes](../docs/SEVA_SUBMISSION.md) | Implemented demo scope, evidence and release checklist |

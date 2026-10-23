@@ -22,6 +22,8 @@ After this first-session sequence, read `docs/FEATURES.md` and
 
 Do not read the entire historical `docs/tasks/` directory to choose work. It
 contains older planning material and is not a reliable current backlog.
+Historical copies are kept locally outside the repository; they are not part of
+a clean clone or an active task source.
 
 ## Current product truth
 
@@ -201,6 +203,8 @@ Use one branch and one logical commit per capability. Follow
 - `docs/INTEGRATIONS.md` owns live-vs-mock integration truth.
 - `docs/TESTS.md` owns executable verification guidance.
 - `docs/DEMO_EVIDENCE.md` owns screenshots, recording, and submission evidence.
+- Historical documentation and task copies outside the repository are local
+  research only and must not be recreated in a PR.
 - `docs/CLINICAL_REGULATORY.md` owns pilot-readiness and regulatory discovery.
 - `docs/decisions/` owns durable architectural decisions.
 - Update the canonical owner when its fact changes; do not duplicate changing

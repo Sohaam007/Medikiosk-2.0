@@ -1,8 +1,8 @@
 # MediKiosk 2.0 — Future Capability Map
 
-The detailed pre-refresh architecture backlog is archived at
-`docs/archive/ARCHITECTURE_BACKLOG-legacy-2026-10-22.md`. It is not an active
-task queue and must not be implemented item-by-item.
+The detailed pre-refresh architecture backlog is kept outside the clean
+repository when historical context is needed. It must not be implemented
+item-by-item.
 
 This one-page map keeps the useful future direction visible without making a
 large speculative feature list look like committed scope. The active sequence
@@ -52,6 +52,8 @@ is `docs/ROADMAP.md`; current truth is `docs/STATUS.md`.
 - Static/2D and low-power fallbacks.
 - Multilingual education library.
 - Accessibility and kiosk hardware support.
+- Bounded multilingual assistant that explains validated structured output;
+  `docs/3D_AND_ASSISTANT_ARCHITECTURE.md` is the design source of truth.
 
 ### 6. Provider and operations platform
 

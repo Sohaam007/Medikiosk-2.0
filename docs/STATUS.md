@@ -1,9 +1,10 @@
 # MediKiosk 2.0 — Current Status
 
-**Last status refresh:** 2026-10-22
+**Last status refresh:** 2026-10-23
 
 This page records the current verified state. Historical wave narratives belong
-in Git or `docs/archive/`; they do not override this page.
+in Git history or an ignored local area outside the repository; they do not
+override this page.
 
 ## Executive state
 
@@ -82,3 +83,22 @@ Verification run on October 22, 2026 after the five-person plan refresh:
 | Hand-edited OpenAPI/generated client | Contract drift | Export/generate scripts |
 | Raw patient examples | PHI/privacy risk | Synthetic fixtures |
 | Full product features added to the demo freeze | Destabilizes submission | Track B roadmap/task packet |
+
+## 2026-10-23 documentation refresh
+
+The Product Scale Track now has a documented separation between clinical
+screening models, deterministic safety policy, the bounded AI assistant, and the
+Blender/GLB explanation layer:
+
+- canonical design: `docs/3D_AND_ASSISTANT_ARCHITECTURE.md`;
+- asset workflow and generation policy: `docs/BLENDER_PIPELINE.md`;
+- model/assistant governance: `docs/MODEL_GOVERNANCE.md`;
+- durable decision draft: ADR 0013;
+- feature register: F-008 and F-009;
+- regression coverage expectations: `docs/REGRESSION.md`.
+
+The selected clinical-asset approach is deterministic Blender Python assembly
+from licensed, clinician-reviewed reference geometry. Optional Hunyuan3D-2 use
+is limited to local, non-clinical blockouts and is not a runtime dependency.
+The 3D runtime, GLB exports, scene registry, and assistant contract are still
+unimplemented; the SEVA demo remains valid without them.
