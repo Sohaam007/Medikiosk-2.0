@@ -52,8 +52,6 @@ is `docs/ROADMAP.md`; current truth is `docs/STATUS.md`.
 - Static/2D and low-power fallbacks.
 - Multilingual education library.
 - Accessibility and kiosk hardware support.
-- Bounded multilingual assistant that explains validated structured output;
-  `docs/3D_AND_ASSISTANT_ARCHITECTURE.md` is the design source of truth.
 
 ### 6. Provider and operations platform
 
