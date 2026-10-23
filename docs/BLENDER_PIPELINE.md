@@ -61,3 +61,53 @@ Before accepting an asset:
 4. measure bundle and first-interaction impact;
 5. verify keyboard/text fallback and reduced motion;
 6. record licenses and the source scene.
+
+## Generation decision
+
+The default generator for clinical anatomy is **Blender itself**, driven by
+deterministic Blender Python (`bpy`) scripts and clinician-reviewed, licensed
+reference geometry. A text-to-3D model is not accepted as the final source of
+medical anatomy.
+
+Optional AI-generated geometry may be used only for neutral avatars or
+non-clinical blockouts. The current experimental candidate is local Hunyuan3D-2,
+but it is not a runtime dependency, must not receive patient data, and requires
+license/provenance review before any output is kept. Every such draft must be
+rebuilt or manually cleaned in Blender and assigned stable semantic node names.
+
+Hunyuan3D-2 is not a default product dependency because its community license
+has territory, distribution, notice, and acceptable-use conditions. In
+particular, the published license excludes the European Union, United Kingdom,
+and South Korea. A future team may use it only after checking the deployment
+territory and recording the required notice and license decision.
+
+Patient-specific anatomy is a separate future workflow based on consented
+medical-image segmentation. It is not generated from a CardioVision risk score
+and is not part of the current 3D feature.
+
+## Required asset workflow
+
+```text
+clinical brief and allowed claims
+→ reference/license manifest
+→ Blender scene assembly or deterministic script
+→ topology/material/semantic-node cleanup
+→ low/medium detail variants
+→ GLB export
+→ manifest/checksum/license validation
+→ frontend viewer + equivalent 2D fallback
+→ performance/accessibility/reduced-motion checks
+→ clinician wording and safety review
+→ PR evidence and human approval
+```
+
+The first Track B asset is one CardioVision heart/coronary scene. It may
+highlight approved vessel targets and risk factors, but it must not display a
+patient-specific blockage, diagnosis, or treatment recommendation.
+
+See `docs/3D_AND_ASSISTANT_ARCHITECTURE.md` and ADR 0013 for the complete
+model/assistant separation and promotion gates.
+
+Reference sources: Blender Python API documentation and the official Tencent
+Hunyuan3D-2 repository/license. These are implementation references, not
+clinical validation evidence.

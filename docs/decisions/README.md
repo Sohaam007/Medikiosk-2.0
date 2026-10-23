@@ -37,6 +37,7 @@ Routine implementation details belong in code, tests, or the task/PR record.
 | [0010](0010-legacy-tree-disposition.md) | Freeze and disposition legacy runtime trees | Accepted |
 | [0011](0011-five-person-two-track-delivery.md) | Five-person two-track delivery model | Accepted |
 | [0012](0012-clinical-regulatory-readiness-gate.md) | Clinical and regulatory readiness gate | Accepted |
+| [0013](0013-model-aware-explanation-and-assistant.md) | Separate clinical models, 3D explanations, and AI assistant | Proposed |
 
 ## Current decision rule
 

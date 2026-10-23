@@ -240,3 +240,36 @@ The product roadmap will add capabilities through these seams:
 - Blender export manifests plus GLB/Three.js components for 3D explanation.
 
 Every seam starts with a deterministic mock and a contract test.
+
+## Product-scale explanation and assistant boundary
+
+The product-scale visual explanation path is intentionally separate from model
+inference and from free-form language generation:
+
+```text
+screening adapter
+  → validated screening result
+  → explanation service
+  → scene registry
+  ├── React Three Fiber/Three.js GLB viewer
+  ├── static SVG/text fallback
+  └── bounded assistant response / read-out
+```
+
+The explanation service is the only component that may translate model output
+into `scene_id`, `highlight_targets`, approved message keys, and fallback text.
+The assistant adapter receives that typed result; it does not calculate risk or
+invent anatomy. Deterministic red-flag and critical-veto policies run before
+assistant output and cannot be downgraded by an LLM.
+
+Clinical anatomy assets are authored in Blender using deterministic `bpy`
+scripts and reviewed/licensed reference geometry. Optional AI-generated geometry
+is limited to non-clinical blockouts and is never a source of medical truth.
+The first Track B scene is a CardioVision heart/coronary explanation with a
+semantically equivalent 2D fallback.
+
+The full contract, disease-coverage tiers, assistant actions, asset workflow,
+fallback states, and promotion gates are defined in
+`docs/3D_AND_ASSISTANT_ARCHITECTURE.md`. This path is planned and is not part of
+the active SEVA runtime until its feature packet, ADR review, model/asset
+evidence, and regression gates are complete.

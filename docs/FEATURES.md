@@ -27,6 +27,7 @@ Proposed/Ready/In Progress → Deferred
 | F-006 | Care navigator workspace and referral outcome tracking | Product scale | Soham | Soumyadeep + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
 | F-007 | Medication-safety review and multilingual education library | Product scale | Soham | Swapnil + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
 | F-008 | Blender/GLB patient explanation assets with low-power fallback | Product scale | Swapnil | Soumyadeep + Pabitra | Proposed | `docs/BLENDER_PIPELINE.md` |
+| F-009 | Bounded multilingual AI intake and explanation assistant | Product scale | Soham | Swapnil + Soumyadeep + Pabitra | Proposed | `docs/3D_AND_ASSISTANT_ARCHITECTURE.md`, `docs/MODEL_GOVERNANCE.md` |
 
 ## Rules for agents
 

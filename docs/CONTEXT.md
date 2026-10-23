@@ -174,3 +174,24 @@ An addition belongs in this project only if it improves at least one of:
 
 Every addition must also identify its data boundary, clinical owner, rollback
 behavior, offline behavior, and verification evidence.
+
+## Visual explanation and assistant boundary
+
+Product-scale explanation uses reusable body-system scenes rather than one
+generated 3D mesh per disease. The supported progression is:
+
+```text
+body map → generic anatomy education → approved screening overlay
+→ patient-specific imaging only after a separate validated workflow
+```
+
+Blender assets are educational/progressive-enhancement artifacts. Clinical
+anatomy is assembled from licensed, clinician-reviewed reference geometry and
+deterministic Blender Python scripts; a text-to-3D generator is not accepted as
+medical truth. The web runtime must retain a static 2D/text fallback.
+
+The AI assistant is a bounded language and workflow layer. It may ask approved
+questions, translate, read aloud, and explain validated structured output. It
+must not diagnose, prescribe, invent evidence or anatomy, override red flags,
+select a provider, book, pay, or dispatch emergency resources. See
+`docs/3D_AND_ASSISTANT_ARCHITECTURE.md` and ADR 0013.
