@@ -102,3 +102,9 @@ from licensed, clinician-reviewed reference geometry. Optional Hunyuan3D-2 use
 is limited to local, non-clinical blockouts and is not a runtime dependency.
 The 3D runtime, GLB exports, scene registry, and assistant contract are still
 unimplemented; the SEVA demo remains valid without them.
+
+The GitHub `main` branch keeps required checks, one review, code-owner review,
+conversation resolution, and no force-push/deletion rules for contributors.
+Admin enforcement is intentionally disabled for the repository owner account
+`@Sohaam007`; no other current collaborator has admin permission. Agents still
+must not bypass the PR workflow or merge PRs.
