@@ -159,3 +159,24 @@ These features increase product value without requiring unsafe automation:
 Choose the smallest incomplete deliverable that unlocks the next user outcome.
 Every task references one track, one phase, one owner, one reviewer, one
 acceptance gate, and one row in `docs/REGRESSION.md`.
+
+## Track B explanation implementation sequence
+
+The 3D and assistant work must follow this order rather than being developed as
+an unbounded chatbot or asset-generation experiment:
+
+1. Approve the clinical intent, allowed claims, and external-egress boundary.
+2. Add the screening/model registry and typed explanation contract.
+3. Build deterministic mocks, red-flag behavior, and static fallbacks first.
+4. Create one clinician-reviewed CardioVision Blender scene with stable semantic
+   nodes and a checked GLB manifest.
+5. Integrate the viewer with loading, error, offline, unsupported-device, and
+   reduced-motion states.
+6. Add the bounded assistant with allowlisted actions and schema validation.
+7. Run model, asset, frontend, accessibility, performance, PHI, and failure-path
+   checks.
+8. Obtain team review and record evidence before adding another disease system.
+
+No disease-specific 3D scene or hosted assistant is a release blocker for Track
+A. The first Track B scene must remain educational/illustrative and must not
+claim a patient-specific lesion or diagnosis.

@@ -23,6 +23,8 @@ executable acceptance command.
 | `frontend/src/views/ClinicianQueueView.tsx` | queue, documents, FHIR download, integrations UI | Frontend lint/build, clinician smoke, accessibility review. |
 | `frontend/src/index.css` or theme tokens | every frontend surface | Frontend build, visual/a11y review, touch-target audit if interaction sizing changes. |
 | `models/` or model inference code | screening APIs, model cards, clinical review policy | Model contract tests, evaluation report, calibration/subgroup checks. |
+| Future Blender asset sources, visualization assets, or scene manifests | explanation service, GLB viewer, static fallback, assistant scene selection | Clean Blender export, manifest/checksum validation, GLB load smoke, static/text equivalence, frontend build, performance/a11y/reduced-motion review. |
+| assistant adapter or explanation service | intake flow, screening explanation, clinician summary, PHI-egress boundary | Schema validation, allowlisted-action tests, red-flag/veto tests, provider timeout/failure tests, offline fallback, full backend suite, frontend smoke. |
 | `scripts/export_openapi.py` | generated API contract and TypeScript SDK | Export diff inspection, client generation, frontend build. |
 
 ## Minimum post-change matrix
@@ -57,6 +59,14 @@ mock contract test → failure/timeout test → auth/PHI review → full suite
 ```text
 contract test → deterministic regression set → calibration/subgroup evaluation
 → safety-threshold review → API/UI smoke
+```
+
+### 3D or assistant change
+
+```text
+scene/explanation contract → deterministic mock → safety/PHI review
+→ GLB or provider failure tests → frontend build → accessibility/performance
+→ static fallback smoke → full regression matrix
 ```
 
 ## Regression record template
