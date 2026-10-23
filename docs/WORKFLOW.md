@@ -31,9 +31,12 @@ create branch → commit task-scoped changes → push task branch → open/updat
 → collect required review and checks → human owner merges
 ```
 
-Agents must not merge a PR. GitHub branch protection must reject direct pushes,
-force pushes, and bypasses on `main`; local instructions are not a substitute
-for the remote rule.
+Agents must not merge a PR. GitHub branch protection rejects direct pushes and
+force pushes for normal contributors. The repository owner/admin account
+`@Sohaam007` is the intentional exception and may bypass the review gate when
+the owner chooses to do so; this does not grant bypass rights to other members.
+Local instructions remain a required contributor workflow, not a substitute for
+the remote rule.
 
 Before pushing, the author must inspect:
 
