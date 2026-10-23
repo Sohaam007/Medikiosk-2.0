@@ -18,6 +18,34 @@ chore/<scope>-<slug>
 Keep the branch focused. Do not mix a feature, broad refactor, dependency
 upgrade, and provider migration unless the task packet explicitly combines them.
 
+## Pull-request-only rule
+
+`main` is a protected integration branch. Agents and contributors must not
+commit or push directly to it. Work starts from an up-to-date `main` checkout on
+one of the task branch forms above, then proceeds through a pull request.
+
+The allowed agent boundary is:
+
+```text
+create branch → commit task-scoped changes → push task branch → open/update PR
+→ collect required review and checks → human owner merges
+```
+
+Agents must not merge a PR. GitHub branch protection rejects direct pushes and
+force pushes for normal contributors. The repository owner/admin account
+`@Sohaam007` is the intentional exception and may bypass the review gate when
+the owner chooses to do so; this does not grant bypass rights to other members.
+Local instructions remain a required contributor workflow, not a substitute for
+the remote rule.
+
+Before pushing, the author must inspect:
+
+```bash
+git status --short --branch
+```
+
+Only files allowed by the task packet may be staged.
+
 ## Commit format
 
 ```text
@@ -91,12 +119,15 @@ Reviewers must verify:
 Every PR should state:
 
 1. user-visible result;
-2. files changed and why;
-3. exact checks run;
-4. external services/modes used;
-5. generated artifacts;
-6. unverified claims or remaining risks;
-7. rollback path.
+2. feature ID and task packet;
+3. human owner and reviewer(s);
+4. files changed and why;
+5. exact checks run;
+6. external services/modes used;
+7. generated artifacts;
+8. unverified claims or remaining risks;
+9. rollback path;
+10. confirmation that no unrelated files are included.
 
 ## Release sequence
 

@@ -46,6 +46,17 @@ npm run lint
 npm run build
 ```
 
+### Repository hygiene and documentation
+
+```bash
+python scripts/check_repo_hygiene.py
+git diff --check
+```
+
+The hygiene check runs without project dependencies and rejects tracked local
+secrets, databases, build outputs, local-only evidence, unexpected root files,
+broken active Markdown links, and unindexed ADRs.
+
 ### API/client synchronization
 
 Run after route or schema changes:
