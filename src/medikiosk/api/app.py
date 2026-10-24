@@ -26,11 +26,15 @@ from fastapi.responses import JSONResponse
 from medikiosk.adapters.config import get_settings
 from medikiosk.adapters.database.engine import create_all_tables, get_engine
 from medikiosk.domain.errors import (
+    AuthorizationError,
     ConsentError,
     ConsentRequiredError,
+    CriticalVetoError,
     IntakeError,
     LLMError,
     MediKioskError,
+    ReferralOutcomeConflictError,
+    ReferralOutcomeNotFoundError,
     SessionExpiredError,
     SessionNotFoundError,
     SessionTerminatedError,
@@ -43,12 +47,16 @@ log = structlog.get_logger(__name__)
 # Maps domain error classes to HTTP status codes.
 # Order matters: subclasses must precede their parents.
 _ERROR_STATUS_MAP: list[tuple[type[MediKioskError], int]] = [
+    (AuthorizationError, 403),
     (SessionNotFoundError, 404),
+    (ReferralOutcomeNotFoundError, 404),
+    (ReferralOutcomeConflictError, 409),
     (SessionTerminatedError, 410),
     (SessionExpiredError, 410),
     (ConsentRequiredError, 403),  # subclass of ConsentError — must be first
     (ConsentError, 403),
     (ValidationError, 422),
+    (CriticalVetoError, 409),
     (IntakeError, 400),
     (LLMError, 503),
 ]
@@ -219,6 +227,7 @@ def create_app() -> FastAPI:
         health,
         intake,
         package,
+        referral_outcomes,
         resources,
         screening,
         speech,
@@ -239,6 +248,7 @@ def create_app() -> FastAPI:
     app.include_router(resources.router)
     app.include_router(audit.router)
     app.include_router(screening.router)
+    app.include_router(referral_outcomes.router)
 
     log.info("app_created", title="MediKiosk", version="0.2.0")
     return app

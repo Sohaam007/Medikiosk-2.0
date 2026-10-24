@@ -1435,6 +1435,96 @@ export type RecordVitalsResponse = {
 };
 
 /**
+ * ReferralCandidateType
+ *
+ * The local catalog type represented by a referral candidate ID.
+ */
+export type ReferralCandidateType = 'doctor' | 'package';
+
+/**
+ * ReferralOutcomeCreateRequest
+ *
+ * Create a workflow record for one local referral candidate.
+ */
+export type ReferralOutcomeCreateRequest = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Candidate Id
+     */
+    candidate_id: string;
+    candidate_type: ReferralCandidateType;
+};
+
+/**
+ * ReferralOutcomeListResponse
+ *
+ * Deterministically ordered workflow records for one session.
+ */
+export type ReferralOutcomeListResponse = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Items
+     */
+    items: Array<ReferralOutcomeResponse>;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * ReferralOutcomeResponse
+ *
+ * Opaque workflow metadata only; no PHI or clinical outcome fields.
+ */
+export type ReferralOutcomeResponse = {
+    /**
+     * Outcome Id
+     */
+    outcome_id: string;
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Candidate Id
+     */
+    candidate_id: string;
+    candidate_type: ReferralCandidateType;
+    status: ReferralOutcomeStatus;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * ReferralOutcomeStatus
+ *
+ * Workflow metadata for a non-binding referral candidate.
+ */
+export type ReferralOutcomeStatus = 'recommended' | 'reviewed' | 'contacted' | 'attended' | 'declined';
+
+/**
+ * ReferralOutcomeTransitionRequest
+ *
+ * Move one referral workflow record to its next legal status.
+ */
+export type ReferralOutcomeTransitionRequest = {
+    status: ReferralOutcomeStatus;
+};
+
+/**
  * ReferralRecommendation
  *
  * Deterministic candidate IDs; this is not an appointment or diagnosis.
@@ -3414,3 +3504,145 @@ export type CardiovascularReferralApiScreeningCardiovascularReferralPostResponse
 };
 
 export type CardiovascularReferralApiScreeningCardiovascularReferralPostResponse = CardiovascularReferralApiScreeningCardiovascularReferralPostResponses[keyof CardiovascularReferralApiScreeningCardiovascularReferralPostResponses];
+
+export type ListReferralOutcomesApiClinicianReferralOutcomesGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Session Id
+         */
+        session_id: string;
+        /**
+         * Token
+         *
+         * JWT token for SSE/WebSocket clients
+         */
+        token?: string | null;
+    };
+    url: '/api/clinician/referral-outcomes';
+};
+
+export type ListReferralOutcomesApiClinicianReferralOutcomesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListReferralOutcomesApiClinicianReferralOutcomesGetError = ListReferralOutcomesApiClinicianReferralOutcomesGetErrors[keyof ListReferralOutcomesApiClinicianReferralOutcomesGetErrors];
+
+export type ListReferralOutcomesApiClinicianReferralOutcomesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReferralOutcomeListResponse;
+};
+
+export type ListReferralOutcomesApiClinicianReferralOutcomesGetResponse = ListReferralOutcomesApiClinicianReferralOutcomesGetResponses[keyof ListReferralOutcomesApiClinicianReferralOutcomesGetResponses];
+
+export type CreateReferralOutcomeApiClinicianReferralOutcomesPostData = {
+    body: ReferralOutcomeCreateRequest;
+    path?: never;
+    query?: {
+        /**
+         * Token
+         *
+         * JWT token for SSE/WebSocket clients
+         */
+        token?: string | null;
+    };
+    url: '/api/clinician/referral-outcomes';
+};
+
+export type CreateReferralOutcomeApiClinicianReferralOutcomesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateReferralOutcomeApiClinicianReferralOutcomesPostError = CreateReferralOutcomeApiClinicianReferralOutcomesPostErrors[keyof CreateReferralOutcomeApiClinicianReferralOutcomesPostErrors];
+
+export type CreateReferralOutcomeApiClinicianReferralOutcomesPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: ReferralOutcomeResponse;
+};
+
+export type CreateReferralOutcomeApiClinicianReferralOutcomesPostResponse = CreateReferralOutcomeApiClinicianReferralOutcomesPostResponses[keyof CreateReferralOutcomeApiClinicianReferralOutcomesPostResponses];
+
+export type GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Outcome Id
+         */
+        outcome_id: string;
+    };
+    query?: {
+        /**
+         * Token
+         *
+         * JWT token for SSE/WebSocket clients
+         */
+        token?: string | null;
+    };
+    url: '/api/clinician/referral-outcomes/{outcome_id}';
+};
+
+export type GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetError = GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetErrors[keyof GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetErrors];
+
+export type GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReferralOutcomeResponse;
+};
+
+export type GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetResponse = GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetResponses[keyof GetReferralOutcomeApiClinicianReferralOutcomesOutcomeIdGetResponses];
+
+export type TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostData = {
+    body: ReferralOutcomeTransitionRequest;
+    path: {
+        /**
+         * Outcome Id
+         */
+        outcome_id: string;
+    };
+    query?: {
+        /**
+         * Token
+         *
+         * JWT token for SSE/WebSocket clients
+         */
+        token?: string | null;
+    };
+    url: '/api/clinician/referral-outcomes/{outcome_id}/transition';
+};
+
+export type TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostError = TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostErrors[keyof TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostErrors];
+
+export type TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReferralOutcomeResponse;
+};
+
+export type TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostResponse = TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostResponses[keyof TransitionReferralOutcomeApiClinicianReferralOutcomesOutcomeIdTransitionPostResponses];

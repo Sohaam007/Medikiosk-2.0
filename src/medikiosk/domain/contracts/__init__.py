@@ -44,6 +44,11 @@ from medikiosk.domain.contracts.intake import (
 )
 from medikiosk.domain.contracts.package import HospitalPackage, PackageCategory
 from medikiosk.domain.contracts.referral import ReferralRecommendation
+from medikiosk.domain.contracts.referral_outcome import (
+    ReferralCandidateType,
+    ReferralOutcome,
+    ReferralOutcomeStatus,
+)
 from medikiosk.domain.contracts.session import (
     InformantType,
     SessionState,
@@ -88,6 +93,9 @@ __all__ = [
     "PMJAYVerificationResult",
     "PackageCategory",
     "QuestionType",
+    "ReferralCandidateType",
+    "ReferralOutcome",
+    "ReferralOutcomeStatus",
     "ReferralRecommendation",
     "ResponseSource",
     "RiskEstimate",

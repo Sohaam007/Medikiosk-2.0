@@ -87,21 +87,21 @@ system claiming that treatment occurred or that a provider confirmed capacity.
 
 ## Acceptance criteria
 
-- [ ] Domain contract validates statuses and legal transitions.
-- [ ] Invalid, terminal, backward, and skipped transitions are rejected.
-- [ ] Referral records preserve session and candidate IDs without PHI.
-- [ ] Create and transition operations append audit events before success is
-      returned.
-- [ ] Critical-veto sessions cannot create or transition routine outcomes.
-- [ ] Clinician-only authorization is enforced on write routes.
-- [ ] List/read responses expose workflow metadata only and use deterministic
-      ordering.
-- [ ] SQLite integration creates and reads the new table through the existing
-      local bootstrap.
-- [ ] OpenAPI and generated client are synchronized after route changes.
-- [ ] Existing CardioVision, clinician queue, audit, and full backend tests pass.
-- [ ] No live-provider, treatment-outcome, booking, payment, or capacity claim is
-      introduced.
+- [x] Domain contract validates statuses and legal transitions.
+- [x] Invalid, terminal, backward, and skipped transitions are rejected.
+- [x] Referral records preserve session and candidate IDs without PHI.
+- [x] Create and transition operations append audit events before success is
+       returned.
+- [x] Critical-veto sessions cannot create or transition routine outcomes.
+- [x] Clinician-only authorization is enforced on write routes.
+- [x] List/read responses expose workflow metadata only and use deterministic
+       ordering.
+- [x] SQLite integration creates and reads the new table through the existing
+       local bootstrap.
+- [x] OpenAPI and generated client are synchronized after route changes.
+- [x] Existing CardioVision, clinician queue, audit, and full backend tests pass.
+- [x] No live-provider, treatment-outcome, booking, payment, or capacity claim is
+       introduced.
 
 ## Verification
 
@@ -132,7 +132,24 @@ environment, remove the table only through a reviewed forward migration.
 
 ## Documentation updates
 
-- [ ] `docs/FEATURES.md`
-- [ ] `docs/REGRESSION.md`
-- [ ] `docs/STATUS.md`
-- [ ] `docs/decisions/0014-care-navigator-referral-outcomes.md`
+- [x] `docs/FEATURES.md`
+- [x] `docs/REGRESSION.md`
+- [x] `docs/STATUS.md`
+- [x] `docs/decisions/0014-care-navigator-referral-outcomes.md`
+
+## Implementation evidence — 2026-10-25
+
+- Backend slice implemented on `feat/f006-care-navigator` and submitted in PR #4.
+- Routes are clinician-only and local/offline:
+  - `POST /api/clinician/referral-outcomes`
+  - `GET /api/clinician/referral-outcomes?session_id=...`
+  - `GET /api/clinician/referral-outcomes/{outcome_id}`
+  - `POST /api/clinician/referral-outcomes/{outcome_id}/transition`
+- Persistence uses the local `referral_outcomes` SQLAlchemy table created by the
+  existing development bootstrap. Production migration tooling remains out of
+  scope.
+- Focused tests: `17 passed`.
+- Full backend tests: `307 passed`.
+- OpenAPI and generated TypeScript client were regenerated.
+- Frontend care-navigator UI remains explicitly out of scope for this slice.
+- PR approval and merge remain human-owned gates; the feature is not `Done` yet.

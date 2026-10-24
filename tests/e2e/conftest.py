@@ -64,6 +64,40 @@ class FakeAuditRepo:
         return max(e.sequence_number for e in events)
 
 
+class FakeOutcomeRepository:
+    def __init__(self):
+        self._store = {}
+
+    async def create(self, outcome):
+        self._store[str(outcome.outcome_id)] = outcome
+        return outcome
+
+    async def get(self, outcome_id):
+        return self._store.get(str(outcome_id))
+
+    async def update(self, outcome):
+        self._store[str(outcome.outcome_id)] = outcome
+        return outcome
+
+    async def get_for_candidate(self, session_id, candidate_type, candidate_id):
+        return next(
+            (
+                item
+                for item in self._store.values()
+                if item.session_id == session_id
+                and item.candidate_type == candidate_type
+                and item.candidate_id == candidate_id
+            ),
+            None,
+        )
+
+    async def list_for_session(self, session_id):
+        return sorted(
+            (item for item in self._store.values() if item.session_id == session_id),
+            key=lambda item: (item.created_at, str(item.outcome_id)),
+        )
+
+
 class FakeLLM:
     async def generate(self, prompt, system, *, temperature=0.3):
         return "Fake clinical summary"

@@ -25,7 +25,7 @@ Proposed/Ready/In Progress → Deferred
 | F-003 | Deterministic synthetic demo reset and failure fixtures | SEVA demo | Aditya | Pabitra + Soham | Ready | `docs/tasks/active/F-003-demo-reset-fixtures.md` |
 | F-004 | CardioVision model card, evaluation, and limitation evidence | SEVA demo | Swapnil | Soham + Pabitra | Ready | `docs/tasks/active/F-004-cardiovision-model-evidence.md` |
 | F-005 | Community screening campaign mode | Product scale | Aditya | Soham + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
-| F-006 | Care navigator workspace and referral outcome tracking | Product scale | Soham | Soumyadeep + Pabitra | In Progress | `docs/tasks/active/F-006-care-navigator-referral-outcomes.md` |
+| F-006 | Care navigator workspace and referral outcome tracking | Product scale | Soham | Soumyadeep + Pabitra | Review | `docs/tasks/active/F-006-care-navigator-referral-outcomes.md`; PR #4 |
 | F-007 | Medication-safety review and multilingual education library | Product scale | Soham | Swapnil + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
 | F-008 | Blender/GLB patient explanation assets with low-power fallback | Product scale | Swapnil | Soumyadeep + Pabitra | Proposed | `docs/BLENDER_PIPELINE.md` |
 | F-009 | Bounded multilingual AI intake and explanation assistant | Product scale | Soham | Swapnil + Soumyadeep + Pabitra | Proposed | `docs/3D_AND_ASSISTANT_ARCHITECTURE.md`, `docs/MODEL_GOVERNANCE.md` |

@@ -14,6 +14,7 @@ from medikiosk.ports.database import (
     ConsentRepository,
     DocumentRepository,
     FHIRRepository,
+    ReferralOutcomeRepository,
     SessionRepository,
     SummaryRepository,
 )
@@ -35,6 +36,7 @@ __all__ = [
     "FHIRRepository",
     "LLMPort",
     "PackageCatalogPort",
+    "ReferralOutcomeRepository",
     "SessionRepository",
     "StoragePort",
     "SummaryRepository",

@@ -13,7 +13,6 @@ from medikiosk.domain.contracts import (
 from medikiosk.domain.errors import CriticalVetoError, ReferralOutcomeConflictError
 from medikiosk.services.referral_outcome_service import ReferralOutcomeService
 
-
 NOW = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
 
 

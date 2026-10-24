@@ -1,6 +1,6 @@
 # MediKiosk 2.0 — Current Status
 
-**Last status refresh:** 2026-10-23
+**Last status refresh:** 2026-10-25
 
 This page records the current verified state. Historical wave narratives belong
 in Git history or an ignored local area outside the repository; they do not
@@ -22,7 +22,7 @@ override this page.
 | PM-JAY | Mock | No live NHA eligibility verification. |
 | WhatsApp | Mock | No live Meta delivery/readback. |
 | Product-scale roadmap | Planned | Multi-disease, passport, routing, integrations, 3D, and operations are Track B. |
-| CI/CD | Hosted PR checks passing | Backend, frontend, repository hygiene, and quality-gate checks passed on PR #1; `main` is protected. |
+| CI/CD | Hosted PR checks passing | Backend, frontend, repository hygiene, and quality-gate checks passed on PR #3; F-006 is under review in PR #4. |
 | Production readiness | Not ready | Clinical, regulatory, provider, operational, and deployment evidence incomplete. |
 
 ## Verified local baseline
@@ -124,3 +124,20 @@ window:
 These packets are documentation/planning readiness, not evidence that the
 features are implemented or that the SEVA submission is complete. F-001–F-004
 remain subject to F-010 claim boundaries and F-011 release gates.
+
+## F-006 backend slice — 2026-10-25
+
+The first local care-navigation slice is implemented and under review in PR #4:
+
+- deterministic referral workflow statuses and legal transitions;
+- clinician-only create/transition/read routes;
+- local SQLite persistence through the existing `create_all` bootstrap;
+- append-only audit events for create and transition operations;
+- critical-veto blocking for routine referral workflow writes;
+- generated OpenAPI and TypeScript client outputs.
+
+Verification evidence for this slice is `307 passed` for the full backend suite,
+focused domain/service/integration/API checks, Ruff, strict mypy on `src/`, and
+repository hygiene. The frontend care-navigator UI, migration-controlled
+production persistence, provider routing, messaging, booking, and treatment
+outcome recording remain out of scope.
