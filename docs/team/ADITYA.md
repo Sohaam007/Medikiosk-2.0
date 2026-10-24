@@ -29,6 +29,14 @@ safe to promote later.
   communications.
 - Accurate integration matrix and unverified-items log.
 
+## Competition launch
+
+- Primary packet: [F-003 — Demo Reset and Failure Fixtures](../tasks/active/F-003-demo-reset-fixtures.md).
+- Evidence handoff: give the reset command, fixture manifest, failure matrix,
+  and integration-truth changes to Pabitra and Soham.
+- Review gate: keep all fixtures synthetic and do not promote a provider,
+  webhook, notification, or capacity claim without a separate boundary review.
+
 ## Stop conditions
 
 Stop when a fixture uses real patient data, a provider adapter lacks a mock/error

@@ -18,6 +18,8 @@ from medikiosk.domain.contracts import (
     ConsentRecord,
     DocumentScan,
     FHIRBundle,
+    ReferralCandidateType,
+    ReferralOutcome,
     SessionState,
 )
 
@@ -251,6 +253,36 @@ class FHIRRepository(Protocol):
         Raises:
             StorageError: On database failure.
         """
+        ...
+
+
+@runtime_checkable
+class ReferralOutcomeRepository(Protocol):
+    """Repository for current referral workflow outcome records."""
+
+    async def create(self, outcome: ReferralOutcome) -> ReferralOutcome:
+        """Persist a new referral outcome."""
+        ...
+
+    async def get(self, outcome_id: UUID) -> ReferralOutcome | None:
+        """Retrieve one outcome by opaque outcome ID."""
+        ...
+
+    async def update(self, outcome: ReferralOutcome) -> ReferralOutcome:
+        """Persist a status transition for an existing outcome."""
+        ...
+
+    async def get_for_candidate(
+        self,
+        session_id: UUID,
+        candidate_type: ReferralCandidateType,
+        candidate_id: UUID,
+    ) -> ReferralOutcome | None:
+        """Retrieve the current record for one session/candidate pair."""
+        ...
+
+    async def list_for_session(self, session_id: UUID) -> list[ReferralOutcome]:
+        """List outcomes in deterministic creation/order-ID order."""
         ...
 
 

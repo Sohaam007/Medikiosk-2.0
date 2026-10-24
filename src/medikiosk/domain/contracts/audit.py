@@ -56,6 +56,8 @@ class AuditEventType(str, Enum):
     STANDING_ORDERS_ISSUED = "standing_orders_issued"
     RESOURCE_ALLOCATED = "resource_allocated"
     CAREGIVER_PASS_ISSUED = "caregiver_pass_issued"  # noqa: S105
+    REFERRAL_OUTCOME_CREATED = "referral_outcome_created"
+    REFERRAL_OUTCOME_TRANSITIONED = "referral_outcome_transitioned"
 
 
 class AuditEvent(BaseModel):

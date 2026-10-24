@@ -2287,6 +2287,282 @@
           }
         }
       }
+    },
+    "/api/clinician/referral-outcomes": {
+      "post": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Create Referral Outcome",
+        "description": "Create a recommended, non-binding referral workflow record.",
+        "operationId": "create_referral_outcome_api_clinician_referral_outcomes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferralOutcomeCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOutcomeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "List Referral Outcomes",
+        "description": "List opaque workflow metadata for one session.",
+        "operationId": "list_referral_outcomes_api_clinician_referral_outcomes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOutcomeListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/referral-outcomes/{outcome_id}": {
+      "get": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Get Referral Outcome",
+        "description": "Read one opaque workflow record.",
+        "operationId": "get_referral_outcome_api_clinician_referral_outcomes__outcome_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "outcome_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Outcome Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOutcomeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinician/referral-outcomes/{outcome_id}/transition": {
+      "post": {
+        "tags": [
+          "clinician"
+        ],
+        "summary": "Transition Referral Outcome",
+        "description": "Apply one legal clinician-controlled workflow transition.",
+        "operationId": "transition_referral_outcome_api_clinician_referral_outcomes__outcome_id__transition_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "outcome_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Outcome Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "JWT token for SSE/WebSocket clients",
+              "title": "Token"
+            },
+            "description": "JWT token for SSE/WebSocket clients"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferralOutcomeTransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralOutcomeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4196,6 +4472,141 @@
         ],
         "title": "RecordVitalsResponse",
         "description": "Response body for POST /api/intake/vitals."
+      },
+      "ReferralCandidateType": {
+        "type": "string",
+        "enum": [
+          "doctor",
+          "package"
+        ],
+        "title": "ReferralCandidateType",
+        "description": "The local catalog type represented by a referral candidate ID."
+      },
+      "ReferralOutcomeCreateRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Candidate Id"
+          },
+          "candidate_type": {
+            "$ref": "#/components/schemas/ReferralCandidateType"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "candidate_id",
+          "candidate_type"
+        ],
+        "title": "ReferralOutcomeCreateRequest",
+        "description": "Create a workflow record for one local referral candidate."
+      },
+      "ReferralOutcomeListResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReferralOutcomeResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "items",
+          "total_count"
+        ],
+        "title": "ReferralOutcomeListResponse",
+        "description": "Deterministically ordered workflow records for one session."
+      },
+      "ReferralOutcomeResponse": {
+        "properties": {
+          "outcome_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Outcome Id"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Candidate Id"
+          },
+          "candidate_type": {
+            "$ref": "#/components/schemas/ReferralCandidateType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReferralOutcomeStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome_id",
+          "session_id",
+          "candidate_id",
+          "candidate_type",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ReferralOutcomeResponse",
+        "description": "Opaque workflow metadata only; no PHI or clinical outcome fields."
+      },
+      "ReferralOutcomeStatus": {
+        "type": "string",
+        "enum": [
+          "recommended",
+          "reviewed",
+          "contacted",
+          "attended",
+          "declined"
+        ],
+        "title": "ReferralOutcomeStatus",
+        "description": "Workflow metadata for a non-binding referral candidate."
+      },
+      "ReferralOutcomeTransitionRequest": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ReferralOutcomeStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReferralOutcomeTransitionRequest",
+        "description": "Move one referral workflow record to its next legal status."
       },
       "ReferralRecommendation": {
         "properties": {

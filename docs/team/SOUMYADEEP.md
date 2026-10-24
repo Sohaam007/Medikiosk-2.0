@@ -30,6 +30,14 @@ backend capabilities.
 - Landing/pitch surface describing the complete journey while clearly separating
   the current prototype from the future product.
 
+## Competition launch
+
+- Primary packet: [F-002 — Landing Page and Kiosk Theme](../tasks/active/F-002-landing-page-theme.md).
+- Evidence handoff: provide screenshots, responsive/a11y notes, and known UI
+  limitations to [F-011](../tasks/active/F-011-seva-release-evidence.md).
+- Review gate: request Soham approval before changing API shape or clinical
+  wording; request Pabitra review before calling the demo evidence complete.
+
 ## Stop conditions
 
 Stop when a UI needs a new API shape not approved by Soham, when a fallback could

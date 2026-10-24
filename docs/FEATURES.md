@@ -19,15 +19,17 @@ Proposed/Ready/In Progress → Deferred
 
 | ID | Capability | Track | Owner | Required reviewer | Status | Task packet / evidence |
 |---|---|---|---|---|---|---|
-| F-001 | CardioVision screening to clinician handoff | SEVA demo | Swapnil | Soham + Pabitra | Evidence pending | `docs/SEVA_SUBMISSION.md`, `docs/DEMO_EVIDENCE.md` |
-| F-002 | Custom shadcn-compatible landing page and kiosk theme | SEVA demo | Soumyadeep | Soham | Ready | Create `docs/tasks/active/F-002-*.md` before implementation |
-| F-003 | Deterministic synthetic demo reset and failure fixtures | SEVA demo | Aditya | Pabitra + Soham | Ready | Create `docs/tasks/active/F-003-*.md` before implementation |
-| F-004 | CardioVision model card, evaluation, and limitation evidence | SEVA demo | Swapnil | Soham + Pabitra | Ready | `docs/MODEL_GOVERNANCE.md` |
+| F-010 | SEVA demo scope, claim, and acceptance freeze | SEVA demo | Soham | Soumyadeep + Pabitra | Review | `docs/tasks/active/F-010-seva-scope-claim-freeze.md` |
+| F-001 | CardioVision screening to clinician handoff | SEVA demo | Swapnil | Soham + Pabitra | Ready | `docs/tasks/active/F-001-cardiovision-handoff-evidence.md` |
+| F-002 | Custom shadcn-compatible landing page and kiosk theme | SEVA demo | Soumyadeep | Soham | Ready | `docs/tasks/active/F-002-landing-page-theme.md` |
+| F-003 | Deterministic synthetic demo reset and failure fixtures | SEVA demo | Aditya | Pabitra + Soham | Ready | `docs/tasks/active/F-003-demo-reset-fixtures.md` |
+| F-004 | CardioVision model card, evaluation, and limitation evidence | SEVA demo | Swapnil | Soham + Pabitra | Ready | `docs/tasks/active/F-004-cardiovision-model-evidence.md` |
 | F-005 | Community screening campaign mode | Product scale | Aditya | Soham + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
-| F-006 | Care navigator workspace and referral outcome tracking | Product scale | Soham | Soumyadeep + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
+| F-006 | Care navigator workspace and referral outcome tracking | Product scale | Soham | Soumyadeep + Pabitra | Review | `docs/tasks/active/F-006-care-navigator-referral-outcomes.md`; PR #4 |
 | F-007 | Medication-safety review and multilingual education library | Product scale | Soham | Swapnil + Pabitra | Proposed | Create a task packet after SEVA demo freeze |
 | F-008 | Blender/GLB patient explanation assets with low-power fallback | Product scale | Swapnil | Soumyadeep + Pabitra | Proposed | `docs/BLENDER_PIPELINE.md` |
 | F-009 | Bounded multilingual AI intake and explanation assistant | Product scale | Soham | Swapnil + Soumyadeep + Pabitra | Proposed | `docs/3D_AND_ASSISTANT_ARCHITECTURE.md`, `docs/MODEL_GOVERNANCE.md` |
+| F-011 | SEVA release evidence and clean-clone verification | SEVA demo | Pabitra | Soham + affected owner | Ready | `docs/tasks/active/F-011-seva-release-evidence.md` |
 
 ## Rules for agents
 

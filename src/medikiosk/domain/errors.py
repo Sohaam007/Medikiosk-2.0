@@ -136,6 +136,30 @@ class AuditError(MediKioskError):
     error_code: str = "AUDIT_ERROR"
 
 
+class AuthorizationError(MediKioskError):
+    """Raised when a caller lacks the role required for an operation."""
+
+    error_code: str = "FORBIDDEN"
+
+
+class CriticalVetoError(MediKioskError):
+    """Raised when a critical clinical veto blocks routine referral tracking."""
+
+    error_code: str = "CRITICAL_VETO_ACTIVE"
+
+
+class ReferralOutcomeNotFoundError(MediKioskError):
+    """Raised when a referral workflow record does not exist."""
+
+    error_code: str = "REFERRAL_OUTCOME_NOT_FOUND"
+
+
+class ReferralOutcomeConflictError(MediKioskError):
+    """Raised when a candidate already has a workflow record for a session."""
+
+    error_code: str = "REFERRAL_OUTCOME_CONFLICT"
+
+
 class InsuranceGatewayError(MediKioskError):
     """Raised when an insurance gateway (e.g. PM-JAY) is unavailable or fails."""
 

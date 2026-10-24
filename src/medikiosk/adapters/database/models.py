@@ -9,7 +9,17 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -175,3 +185,30 @@ class FHIRBundleModel(Base):
     source_transcript_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
     session: Mapped[SessionModel] = relationship("SessionModel")
+
+
+class ReferralOutcomeModel(Base):
+    """Current local workflow state for one referral candidate."""
+
+    __tablename__ = "referral_outcomes"
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "candidate_type",
+            "candidate_id",
+            name="uq_referral_outcome_candidate",
+        ),
+    )
+
+    outcome_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    candidate_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    candidate_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

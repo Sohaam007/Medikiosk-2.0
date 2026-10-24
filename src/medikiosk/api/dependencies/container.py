@@ -32,6 +32,7 @@ from medikiosk.adapters.database.engine import (
     get_session_factory,
 )
 from medikiosk.adapters.database.fhir_repo import SQLFHIRRepository
+from medikiosk.adapters.database.referral_outcome_repo import SQLReferralOutcomeRepository
 from medikiosk.adapters.database.session_repo import SQLSessionRepository
 from medikiosk.adapters.database.summary_repo import SQLSummaryRepository
 from medikiosk.adapters.llm.gemini import GeminiAdapter
@@ -44,6 +45,7 @@ from medikiosk.ports.comms import NotificationPort
 from medikiosk.ports.database import (
     DocumentRepository,
     FHIRRepository,
+    ReferralOutcomeRepository,
     SummaryRepository,
 )
 from medikiosk.ports.doctor import DoctorRepository
@@ -56,6 +58,7 @@ from medikiosk.ports.storage import StoragePort
 # ── Service imports ────────────────────────────────────────────────────────────
 from medikiosk.services.intake_service import IntakeService
 from medikiosk.services.ocr_service import OCRService
+from medikiosk.services.referral_outcome_service import ReferralOutcomeService
 from medikiosk.services.session_service import SessionService
 from medikiosk.services.summary_service import SummaryService
 
@@ -194,6 +197,13 @@ def get_fhir_repo_dep(
         SQLFHIRRepository bound to db.
     """
     return SQLFHIRRepository(db)
+
+
+def get_referral_outcome_repo_dep(
+    db: Annotated[AsyncSession, Depends(get_db_dep)],
+) -> ReferralOutcomeRepository:
+    """Provide the local SQL referral outcome repository."""
+    return SQLReferralOutcomeRepository(db)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -390,3 +400,13 @@ def get_summary_service_dep(
         SummaryService wired with all dependencies.
     """
     return SummaryService(llm, summary_repo, fhir_repo, audit_repo)
+
+
+def get_referral_outcome_service_dep(
+    outcome_repo: Annotated[ReferralOutcomeRepository, Depends(get_referral_outcome_repo_dep)],
+    session_repo: Annotated[SQLSessionRepository, Depends(get_session_repo_dep)],
+    audit_repo: Annotated[SQLAuditRepository, Depends(get_audit_repo_dep)],
+    cache: Annotated[CachePort, Depends(get_cache_dep)],
+) -> ReferralOutcomeService:
+    """Provide the clinician-only referral outcome service."""
+    return ReferralOutcomeService(outcome_repo, session_repo, audit_repo, cache)

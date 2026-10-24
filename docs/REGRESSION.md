@@ -12,6 +12,7 @@ executable acceptance command.
 | `src/medikiosk/domain/intake/` | `src/medikiosk/services/intake_service.py`, intake routes, kiosk view, summary generation | Intake unit tests, `tests/e2e/test_intake_api.py`, full backend suite. |
 | `src/medikiosk/domain/triage/`, `src/medikiosk/domain/vitals.py`, `src/medikiosk/domain/veto.py` | intake flow, clinician queue, emergency UI, commercial-flow guard | Invariant/chokepoint tests, phase route tests, full backend suite. |
 | `src/medikiosk/domain/referral_matcher.py` | cardiovascular referral route, CardioVision panel | Matcher unit tests, screening API tests, inspect non-binding behavior. |
+| `src/medikiosk/domain/contracts/referral_outcome.py`, referral outcome policy, and F-006 service | care navigator status routes, audit trail, local referral workflow | Domain transition tests, service/audit tests, clinician authorization tests, referral-outcome API tests, full backend suite. |
 | `src/medikiosk/adapters/cardiovision/` | screening routes, referral route, model output UI | Adapter tests, screening E2E tests, mode-specific smoke test. |
 | `src/medikiosk/services/ocr_service.py` | document upload route, document repository, clinician document view | Document E2E tests, adapter tests, upload-limit tests. |
 | `src/medikiosk/services/summary_service.py` | summary and FHIR routes, clinician view, generated client | Summary E2E tests, contract review, FHIR claim review. |
@@ -26,6 +27,7 @@ executable acceptance command.
 | Future Blender asset sources, visualization assets, or scene manifests | explanation service, GLB viewer, static fallback, assistant scene selection | Clean Blender export, manifest/checksum validation, GLB load smoke, static/text equivalence, frontend build, performance/a11y/reduced-motion review. |
 | assistant adapter or explanation service | intake flow, screening explanation, clinician summary, PHI-egress boundary | Schema validation, allowlisted-action tests, red-flag/veto tests, provider timeout/failure tests, offline fallback, full backend suite, frontend smoke. |
 | `scripts/export_openapi.py` | generated API contract and TypeScript SDK | Export diff inspection, client generation, frontend build. |
+| `tests/`, `.github/workflows/`, and release evidence | PR checks, clean-clone setup, demo submission | Full verification matrix, hygiene, diff review, smoke/evidence inventory, and human release review. |
 
 ## Minimum post-change matrix
 
