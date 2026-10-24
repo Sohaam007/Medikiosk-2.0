@@ -19,6 +19,7 @@ Proposed/Ready/In Progress → Deferred
 
 | ID | Capability | Track | Owner | Required reviewer | Status | Task packet / evidence |
 |---|---|---|---|---|---|---|
+| F-010 | SEVA demo scope, claim, and acceptance freeze | SEVA demo | Soham | Soumyadeep + Pabitra | Review | `docs/tasks/active/F-010-seva-scope-claim-freeze.md` |
 | F-001 | CardioVision screening to clinician handoff | SEVA demo | Swapnil | Soham + Pabitra | Evidence pending | `docs/SEVA_SUBMISSION.md`, `docs/DEMO_EVIDENCE.md` |
 | F-002 | Custom shadcn-compatible landing page and kiosk theme | SEVA demo | Soumyadeep | Soham | Ready | Create `docs/tasks/active/F-002-*.md` before implementation |
 | F-003 | Deterministic synthetic demo reset and failure fixtures | SEVA demo | Aditya | Pabitra + Soham | Ready | Create `docs/tasks/active/F-003-*.md` before implementation |

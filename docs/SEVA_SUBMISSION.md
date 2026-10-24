@@ -24,12 +24,12 @@ care option remains visible without pretending that a mock is a live provider.
 
 | Journey | Local evidence | Claim label |
 |---|---|---|
-| Screen | `/api/screening/cardiovascular`, CardioVision panel, local mock/assets | Local/mock; not clinical validation |
-| Explain | Risk factors, model/version metadata, disclaimer, local explanation | Explainability aid; not diagnosis |
-| Connect | `/api/screening/cardiovascular/referral`, local cardiology candidates | Local non-binding candidates; no booking/capacity |
-| Intake | Voice/touch/SOCRATES path in `KioskIntakeView` | Local workflow; speech provider is mocked |
-| Documents | Synthetic document capture and OCR boundary | Local/provider-capable; no real PHI |
-| Clinician handoff | Queue, summary, audit, FHIR-shaped local output | Local structured handoff; external FHIR validation unverified |
+| Screen | `/api/screening/cardiovascular`, CardioVision panel, local mock/assets | Mock/simulated by default; optional local model assets; not clinical validation |
+| Explain | Risk factors, model/version metadata, disclaimer, local explanation | Local explanation aid; not diagnosis |
+| Connect | `/api/screening/cardiovascular/referral`, local cardiology candidates | Local non-binding candidates; no booking, payment, or live capacity |
+| Intake | Voice/touch/SOCRATES path in `KioskIntakeView` | Local workflow; speech transcription is mock/simulated |
+| Documents | Synthetic document capture and OCR boundary | Provider-capable but unverified; no real PHI |
+| Clinician handoff | Queue, summary, audit, FHIR-shaped local output | Local structured handoff; not externally FHIR-validated |
 | Resilience | Offline preview, auth failure, reset/demo case | Local fallback; not provider delivery |
 
 ## Five-minute demo script
@@ -52,10 +52,16 @@ care option remains visible without pretending that a mock is a live provider.
 ## Claims we do and do not make
 
 We claim a working local software prototype, deterministic offline behavior,
-structured contracts, a bounded CardioVision integration, and a clinician-review
-handoff. We do not claim clinical validation, `>90% AUC`, diagnosis, live ABDM,
-PM-JAY, WhatsApp, ambulance, payment, hospital capacity, visa, travel, or live
-medical-tourism integrations.
+structured contracts, a bounded CardioVision screening path, and a
+clinician-review handoff. The exact claim labels for the demonstrable journey
+are defined in the table above and must remain aligned with
+`docs/INTEGRATIONS.md`.
+
+We do not claim clinical validation, `>90% AUC`, diagnosis, live ABDM, PM-JAY,
+WhatsApp, ambulance, payment, hospital capacity, visa, travel, or live
+medical-tourism integrations. Local fixtures, UI cards, mock gateways, and
+provider-capable adapters without dated sandbox evidence do not count as live
+connectivity.
 
 ## Submission evidence
 

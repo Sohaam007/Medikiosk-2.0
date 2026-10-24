@@ -32,6 +32,27 @@ Start local stack
 → show reset/offline behavior
 ```
 
+## Canonical Track A claim matrix
+
+Use the following labels when preparing screenshots, recordings, summaries, or
+judge-facing material. These labels mirror the integration vocabulary in
+`docs/INTEGRATIONS.md`; a local UI surface must not be described as a live
+provider integration.
+
+| Demonstrated capability | Canonical label | Evidence boundary |
+|---|---|---|
+| CardioVision screen | Mock/simulated by default; optional local model assets | Screening review signal only; no diagnosis or clinical validation claim. |
+| Explanation | Local | Model factors and disclaimer are shown; no causal medical advice claim. |
+| Referral candidates | Local | Non-binding cardiology candidates; no doctor selection, booking, payment, or capacity claim. |
+| Voice/touch intake | Local; speech transcription mock/simulated | Demonstrates workflow behavior, not external speech-provider delivery. |
+| Document/OCR path | Provider-capable but unverified | Synthetic fixtures only; no real patient files or verified external delivery. |
+| Clinician handoff | Local | Queue, audit, summary, and FHIR-shaped output; not external FHIR compliance evidence. |
+| Offline/auth-failure/reset | Local fallback | Failure must be visible and must not look like successful provider delivery. |
+
+The statuses `sandbox-verified` and `verified live` are not used anywhere in the
+SEVA demo package unless a dated, reproducible external test and readback record
+has been added by the responsible owner and reviewed by Soham and Pabitra.
+
 ## Evidence naming
 
 Use repository-relative names and dates:
