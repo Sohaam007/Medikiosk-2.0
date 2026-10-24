@@ -28,6 +28,13 @@ honest about what is implemented versus mocked.
 - Approve the final claim matrix and safety language.
 - Lead the clean-architecture and clinical-safety review.
 
+## Competition launch
+
+- Primary packet: [F-006 — Care Navigator and Referral Outcomes](../tasks/active/F-006-care-navigator-referral-outcomes.md).
+- Release/claims packet: [F-010 — SEVA Scope and Claim Freeze](../tasks/active/F-010-seva-scope-claim-freeze.md).
+- Review gate: approve contract, clinical wording, PHI boundary, and final
+  production/integration claims before another owner marks work complete.
+
 ## Stop conditions
 
 Stop when a change requires an unreviewed clinical threshold, a live-provider

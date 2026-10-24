@@ -30,6 +30,13 @@ calibration-aware capabilities with safe product boundaries.
 - A report explicitly labeled **not clinical validation** unless external evidence
   exists.
 
+## Competition launch
+
+- First packet: [F-001 — CardioVision Handoff Evidence](../tasks/active/F-001-cardiovision-handoff-evidence.md).
+- Follow-on packet: [F-004 — CardioVision Model Evidence](../tasks/active/F-004-cardiovision-model-evidence.md).
+- Review gate: Soham approves safety/claim language and Pabitra confirms
+  reproducibility before any model metric or threshold is published.
+
 ## Stop conditions
 
 Stop when data provenance is unclear, metrics cannot be reproduced, an animation

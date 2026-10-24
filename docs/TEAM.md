@@ -1,8 +1,7 @@
 # MediKiosk 2.0 — Ownership and Five-Person Team Model
 
-The active team has five people. Soham is the leader and Soumyadeep is the
-co-lead. Detailed capacity rules live in `docs/TEAM_CAPACITY.md`; individual
-profiles live in `docs/team/`.
+The active team has five people. Detailed capacity rules live in
+`docs/TEAM_CAPACITY.md`; individual profiles live in `docs/team/`.
 
 Profiles: [Soham](team/SOHAM.md) · [Soumyadeep](team/SOUMYADEEP.md) ·
 [Swapnil](team/SWAPNIL.md) · [Pabitra](team/PABITRA.md) ·
@@ -12,9 +11,9 @@ Profiles: [Soham](team/SOHAM.md) · [Soumyadeep](team/SOUMYADEEP.md) ·
 
 | Owner | Role | Default ownership | Final review responsibility |
 |---|---|---|---|
-| **Soham** | **Leader — Architecture, Backend, Clinical Safety** | Product scope, domain, ports, services, API architecture, ADRs, privacy, clinical claims | Contracts, safety boundaries, production claims, final merge decisions |
-| **Soumyadeep** | **Co-lead — Product Experience and Frontend** | Kiosk, clinician console, design system, accessibility, landing/demo narrative | UI/API alignment, clinical wording, browser behavior, judge-facing flow |
-| **Swapnil** | **ML/AI and CardioVision Lead** | Models, evaluation, calibration, explainability, model cards, 3D plan | Model claims, thresholds, data provenance, explainability safety |
+| **Soham** | **Architecture, Backend, Clinical Safety** | Product scope, domain, ports, services, API architecture, ADRs, privacy, clinical claims | Contracts, safety boundaries, production claims, final merge decisions |
+| **Soumyadeep** | **Product Experience and Frontend** | Kiosk, clinician console, design system, accessibility, landing/demo narrative | UI/API alignment, clinical wording, browser behavior, judge-facing flow |
+| **Swapnil** | **ML/AI and CardioVision** | Models, evaluation, calibration, explainability, model cards, 3D plan | Model claims, thresholds, data provenance, explainability safety |
 | **Pabitra** | **QA, Security Verification and Release Operations** | Tests, CI, clean-clone verification, security evidence, screenshots, recording, release | Evidence completeness, reproducibility, security and release gates |
 | **Aditya** | **Integrations, Synthetic Data and Workflow Reliability** | Mock/provider seams, fixtures, reset/demo data, document/referral edge cases, partner-data preparation | Integration truth, fixture safety, webhook/provider failure behavior |
 
@@ -54,6 +53,17 @@ AI agents work under the human owner; they do not replace accountability:
 | ML/model | Swapnil | evaluation, manifests, model cards, explainability fixtures |
 | Integration/data | Aditya | mock adapters, fixtures, provider boundary tests |
 | QA/release/security | Pabitra | regression, CI, smoke, evidence, security verification |
+
+## Competition start order
+
+1. Soham confirms the F-010 claim boundary and reviews the F-006 contract/ADR.
+2. Swapnil starts F-001; Soumyadeep starts F-002; Aditya starts F-003; Pabitra
+   starts F-011 evidence scaffolding in parallel.
+3. F-004 begins only after F-001 produces stable model outputs.
+4. Pabitra runs the release matrix after F-001–F-004 handoffs; Soham makes the
+   final claims/safety decision.
+5. Product Scale work must not change the frozen Track A journey without an
+   explicit scope exception and regression evidence.
 
 ## Escalation
 

@@ -29,6 +29,14 @@ claim, or a security regression.
 - Regression coverage for reset, offline, auth failure, and CardioVision failure.
 - Submission evidence package with unresolved gaps clearly listed.
 
+## Competition launch
+
+- Primary packet: [F-011 — SEVA Release Evidence](../tasks/active/F-011-seva-release-evidence.md).
+- Review queue: F-001 CardioVision evidence, F-002 UI evidence, F-003 reset and
+  failure fixtures, and F-004 model evidence.
+- Release gate: record exact commands and exit codes; block claims or release
+  readiness when evidence, reproducibility, security, or human review is absent.
+
 ## Stop conditions
 
 Stop release when checks were not run, CI is unverified, a mock is presented as

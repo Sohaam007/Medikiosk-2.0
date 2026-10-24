@@ -60,10 +60,10 @@ Verification run on October 22, 2026 after the five-person plan refresh:
 
 ### SEVA Demo Track
 
-1. Soham freezes claims and acceptance criteria.
-2. Soumyadeep and Aditya harden the repeatable kiosk-to-clinician flow.
-3. Swapnil produces the CardioVision evidence pack.
-4. Pabitra runs regression/release gates and captures evidence.
+1. F-010 freezes claims and acceptance criteria.
+2. Soumyadeep starts F-002 and Aditya starts F-003 on isolated branches.
+3. Swapnil starts F-001, then F-004 after stable model outputs exist.
+4. Pabitra starts F-011 evidence scaffolding and runs release gates after handoffs.
 5. The full team reviews the submission package and records unresolved gaps.
 
 ### Product Scale Track
@@ -108,3 +108,19 @@ conversation resolution, and no force-push/deletion rules for contributors.
 Admin enforcement is intentionally disabled for the repository owner account
 `@Sohaam007`; no other current collaborator has admin permission. Agents still
 must not bypass the PR workflow or merge PRs.
+
+## Competition documentation readiness — 2026-10-25
+
+The active team now has bounded launch packets for the first implementation
+window:
+
+- F-001: CardioVision handoff evidence — Swapnil;
+- F-002: landing page and kiosk theme — Soumyadeep;
+- F-003: deterministic reset and failure fixtures — Aditya;
+- F-004: CardioVision model evidence — Swapnil, after F-001;
+- F-006: local audited referral workflow outcomes — Soham;
+- F-011: release evidence and clean-clone verification — Pabitra.
+
+These packets are documentation/planning readiness, not evidence that the
+features are implemented or that the SEVA submission is complete. F-001–F-004
+remain subject to F-010 claim boundaries and F-011 release gates.
